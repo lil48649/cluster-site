@@ -1,44 +1,27 @@
-# GBD Research Hub — 科研数据管理系统（网页发布仓库）
+# 天津心血管疾病+队列 · 科研数据管理平台
 
-该公开仓库只发布静态网站，不含科研 CSV、R 数据分析代码、任何密码或私有密钥。
+本仓库仅包含 GitHub Pages 网页程序和公开客户端配置，**不包含真实临床CSV、患者数据、原始字段清单、数据库密码或服务端密钥**。
 
-## 网站入口
+## 正式网站入口
 
-临时站点： https://lil48649.github.io/cluster-site/secure-preview/
+- https://lil48649.github.io/cluster-site/
+- https://lil48649.github.io/cluster-site/clinical-preview/
 
-最终计划恢复的站点： https://lil48649.github.io/cluster/secure-preview/
+首页自动进入队列管理平台。当前为虚构数据查询预览，真实数据库尚未导入/开放。
 
-根目录的 `index.html` 自动跳转到 `secure-preview/`。
+## 页面功能
 
-## 安全模式
+- Supabase 项目组成员白名单、个人账号密码与 TOTP 双因素认证
+- 队列概览、服务器端筛选及分页、研究变量分布图
+- 不提供CSV/Excel下载入口
+- 真实数据存储在 Supabase 非公开数据库schema，开发完成前不授予普通账号直接读取权限
 
-- 个人邮箱与密码通过 Supabase Auth 登录，手机 TOTP 双因素验证
-- Supabase Private Storage 中保存真实 CSV 文件
-- Supabase Storage RLS 严格校验项目组白名单、有效登录会话与 AAL2 身份认证
-- `secure-preview/secure-config.js` 仅包含允许公开的项目 URL 和 publishable key
-- `secure-preview/vendor/qrcodegen.min.js` 为 MIT 许可的本地二维码实现
+普通用户能看到的数据仍可能被复制或截图；正式上线需要字段脱敏、查询审计和严格服务器端权限检查。
 
-**禁止将 CSV、用户密码、TOTP 种子、Supabase service_role / secret key 加入网页发布仓库。** 已授权的研究成员仍可在本地保存已读取的数据。
+## 历史测试文件
 
-## GitHub Pages 发布
+仓库中原有演示程序文件保留用于技术回退，正式网站首页不再链接它们。不要将真实CSV加入任何公开仓库，也不要将旧演示文件用于正式队列数据的访问控制。
 
-在新仓库 Settings → Pages 里选择 `Deploy from a branch`，分支 `main`，目录 `/(root)`。
+## 部署
 
-本仓库使用独立的新 Git 历史，不能合并原 `cluster` 旧历史；旧仓库过去曾经公开过 CSV，其历史须另行处理。
-
-
-## Local Clinical Vault（本机临床数据工作台）
-
-独立入口：`/local-vault/`。
-
-- 与示例网站共用 Supabase 密码与 TOTP 双因素验证
-- **不上传任何临床 CSV**：浏览器本机选择文件，Web Worker 内完成解析、查询和统计
-- 支持大体积 UTF-8 CSV、动态字段字典、最多8个组合筛选、按需分页、频数图与数值直方图
-- 数据只保存在当前浏览器标签页内存，不写入 GitHub、Supabase、localStorage 或 IndexedDB
-- 独立网络守卫只放行 Supabase 身份认证接口，阻止临床页面的存储 API、跨站接口和其他数据网络请求
-- 不包含任何私人患者记录、原始 CSV、真实字段列表或医疗文件片段
-- 关闭页面、刷新或退出登录时，本机内存数据即被释放，CSV 原文件不受影响
-
-**说明**：此网页需要访问公网加载静态代码、验证项目成员身份和 TOTP；以上访问不携带用户选择的临床 CSV。对于真正不允许设备连接任何互联网的场景，请将代码部署到离线终端或内网，替换线上身份验证方式。
-
-此本机工作台与 `/secure-preview/` 的示例 GBD 网站互不影响。临床数据严格禁止提交到任何 GitHub 分支或 Supabase。
+GitHub Pages：main 分支根目录。数据库与账号认证使用独立 Supabase 项目配置。
