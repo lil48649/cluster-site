@@ -1,0 +1,26 @@
+
+/* Extra styles only for the synthetic clinical-database test page. */
+.clinical-caution{margin:18px 0 22px;border:1px solid #d8e7f4;background:#edf6ff;border-radius:11px;padding:14px 18px;font-size:12px;line-height:1.9;color:#466781}
+.clinical-caution strong{color:#286a9e}
+.clinical-error{margin:16px 0;border:1px solid #f0c5c5;background:#fff3f3;color:#a73535;border-radius:9px;padding:13px 18px;font-size:13px;line-height:1.6}
+.clinical-loading{background:#fff;padding:32px;text-align:center;color:#61829d;border:1px solid #e1edf6;border-radius:11px;font-size:13px}
+.clinical-muted{color:#8aa0b3;font-size:12px;padding:12px 0}
+.clinical-filters{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.clinical-filters label{display:flex;flex-direction:column;gap:7px;color:#597790;font-size:12px;font-weight:600}
+.clinical-filters label .vault-input,.clinical-filters label .vault-select{width:140px;max-width:100%}
+.clinical-filters button{min-height:36px}
+.clinical-security{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.clinical-security article{border:1px solid #e2eaf2;background:#f8fbff;border-radius:10px;padding:21px}
+.clinical-security article strong{color:#224e73;font-size:14px}
+.clinical-security article p{font-size:12px;color:#677e93;line-height:1.85;margin:11px 0 0}
+#tableBody td{font-variant-numeric:tabular-nums}
+#tableHead th{background:#edf4fa}
+#bars{margin:17px 0 6px;min-height:125px}
+#statMatched{color:#2586a6}
+#workspace[hidden],#loading[hidden]{display:none!important}
+@media(max-width:690px){
+ .clinical-filters{display:grid;grid-template-columns:1fr 1fr}
+ .clinical-filters label .vault-input,.clinical-filters label .vault-select{width:100%}
+ .clinical-security{grid-template-columns:1fr}
+ .clinical-filters .vault-primary,.clinical-filters .vault-outline{width:100%}
+}
