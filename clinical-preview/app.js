@@ -1,4 +1,4 @@
-/* Clinical Research Hub — SYNTHETIC DATA ONLY.
+/* 天津心血管疾病+队列 — SYNTHETIC DATA ONLY.
  * Reads exclusively 3 server-side, allowlisted, read-only RPCs.
  * No raw CSV download, arbitrary SQL, or direct table access.
  */
@@ -16,17 +16,15 @@ const schema=[["id","记录编号"],["sex","性别"],["age","年龄"],["cohort",
 function renderShell(){
  const app=$("app");app.className="app vault-shell";
  app.innerHTML=
- '<aside class="vault-sidebar"><div class="vault-brand"><div class="vault-logo">✚</div><div><strong>Research Hub</strong><small>CLINICAL DB PREVIEW</small></div></div>'+
+ '<aside class="vault-sidebar"><div class="vault-brand"><div class="vault-logo">♥</div><div><strong>天津心血管疾病+队列</strong><small>CARDIOVASCULAR COHORT</small></div></div>'+
  '<div class="vault-navtitle">项目管理</div>'+
- '<button type="button" class="vault-nav active" data-view="overview">▦　数据总览</button>'+
- '<button type="button" class="vault-nav" data-view="records">☷　临床数据查询</button>'+
- '<button type="button" class="vault-nav" data-view="dictionary">▤　字段说明</button>'+
- '<button type="button" class="vault-nav" data-view="security">✓　权限与核验</button>'+
+ '<button type="button" class="vault-nav active" data-view="overview">▦　队列概览</button>'+
+ '<button type="button" class="vault-nav" data-view="records">☷　队列数据检索</button>'+
  '<div class="vault-bottom"><span class="vault-dot"></span> Supabase · MFA · 只读查询</div></aside>'+
- '<div class="vault-right"><header class="vault-top"><div><small>科研工作台 / 临床数据库测试</small><strong id="pageTitle">数据总览</strong></div><div class="vault-actions">'+
+ '<div class="vault-right"><header class="vault-top"><div><small>天津心血管疾病+队列 / 科研数据库</small><strong id="pageTitle">队列概览</strong></div><div class="vault-actions">'+
  '<span class="vault-shield"><span class="vault-dot"></span> 已通过双因素认证</span></div></header>'+
- '<main class="vault-main"><section class="vault-hero"><div><div class="vault-eyebrow">SECURE RESEARCH DATABASE</div><h1>临床科研数据管理系统</h1>'+
- '<p>多设备共享 · 后端查询 · 成员白名单与TOTP双重认证</p></div><div class="vault-hero-chip">SYNTHETIC DATA · TEST ONLY</div></section>'+
+ '<main class="vault-main"><section class="vault-hero"><div><div class="vault-eyebrow">TIANJIN CARDIOVASCULAR COHORT</div><h1>天津心血管疾病+队列</h1>'+
+ '<p>心血管队列研究 · 安全检索 · 多设备协作 · 双因素认证</p></div><div class="vault-hero-chip">SYNTHETIC DATA · TEST ONLY</div></section>'+
  '<div class="clinical-caution"><strong>当前为虚构数据测试环境：</strong>全部记录由程序生成，不包含患者数据；正式数据库尚未导入。网页没有整库下载入口，单次查询最多返回50行。</div>'+
  '<div id="dataError" class="clinical-error" hidden></div>'+
  '<div id="loading" class="clinical-loading">正在验证授权并读取测试数据库…</div>'+
@@ -60,20 +58,7 @@ function renderShell(){
     '<div class="vault-pagination"><span id="pageInfo">—</span><div><button class="vault-outline" id="prevPage" type="button">上一页</button>'+
     '<button class="vault-outline" id="nextPage" type="button">下一页</button></div></div></div>'+
  '</section>'+
- '<section class="vault-pane" data-pane="dictionary">'+
-   '<div class="vault-block"><div class="vault-block-head"><div><h2>演示字段字典</h2><p>当前只有测试接口允许返回的八个字段，正式版将另行审批字段权限</p></div></div>'+
-   '<div class="vault-table-scroll"><table class="vault-table"><thead><tr><th>字段</th><th>中文说明</th><th>访问方式</th></tr></thead><tbody id="dictionaryRows"></tbody></table></div></div>'+
- '</section>'+
- '<section class="vault-pane" data-pane="security">'+
-   '<div class="vault-block"><div class="vault-block-head"><div><h2>安全策略核验</h2><p>本页仅供验证，不代表真实临床数据已通过正式合规审查</p></div></div>'+
-   '<div class="clinical-security">'+
-    '<article><strong>登录条件</strong><p>项目组成员白名单 + 有效会话 + TOTP（AAL2）。后端逐次校验，页面隐藏并非安全边界。</p></article>'+
-    '<article><strong>数据所在位置</strong><p>程序生成的虚构记录在非公开 schema；没有原始文件下载链接，数据库表不向 REST 直接开放。</p></article>'+
-    '<article><strong>查询限制</strong><p>只有指定的统计与分页 RPC；所有筛选参数均被校验；服务端每页最多50条。</p></article>'+
-    '<article><strong>下载限制</strong><p>没有导出按钮。已显示在浏览器的内容仍可能被复制，真实数据上线需进一步落实最小字段权限与审计。</p></article>'+
-   '</div></div>'+
- '</section>'+
- '</section><footer class="vault-footer">Clinical Research Hub · 安全查询原型 · SYNTHETIC DATA ONLY</footer></main></div>';
+ '</section><footer class="vault-footer">天津心血管疾病+队列 · 数据管理平台 · 演示环境</footer></main></div>';
  const out=$("logoutBtn");if(out){out.hidden=false;out.className="vault-outline";app.querySelector(".vault-actions").appendChild(out);}
  app.querySelectorAll(".vault-nav").forEach(el=>el.addEventListener("click",()=>navigate(el.dataset.view)));
  $("searchForm").addEventListener("submit",e=>{e.preventDefault();applyFilters();});
@@ -82,11 +67,10 @@ function renderShell(){
  $("pageSize").addEventListener("change",e=>{state.size=Number(e.target.value);state.page=1;recordQuery();});
  $("prevPage").addEventListener("click",()=>{state.page=Math.max(1,state.page-1);recordQuery();});
  $("nextPage").addEventListener("click",()=>{if(state.search&&state.page*state.size<state.search.total){state.page++;recordQuery();}});
- $("dictionaryRows").innerHTML=schema.map(([a,b])=>'<tr><td><code>'+esc(a)+'</code></td><td>'+esc(b)+'</td><td>授权后分页显示</td></tr>').join("");
 }
 function navigate(page){
  state.active=page;
- const labels={overview:"数据总览",records:"临床数据查询",dictionary:"字段说明",security:"权限与核验"};
+ const labels={overview:"队列概览",records:"队列数据检索"};
  $("pageTitle").textContent=labels[page];
  document.querySelectorAll(".vault-nav").forEach(x=>x.classList.toggle("active",x.dataset.view===page));
  document.querySelectorAll(".vault-pane").forEach(x=>x.classList.toggle("active",x.dataset.pane===page));
