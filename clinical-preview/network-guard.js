@@ -5,7 +5,7 @@
 (function(){
 "use strict";
 const original=window.fetch.bind(window);
-const base=String(window.GBD_SECURE_CONFIG?.url||"");
+const base=String(window.TJ_CV_COHORT_CONFIG?.url||"");
 if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(base))throw Error("Invalid authentication service configuration");
 const allowed=[
  /^\/auth\/v1\/token$/,
