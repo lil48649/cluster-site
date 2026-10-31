@@ -84,6 +84,15 @@ async function rpc(name,args){if(typeof window.CLINICAL_PREVIEW_RPC!=="function"
 async function start(){
  renderShell();
  try{
+ const realStatus=await rpc("tj_cv_cohort_status");
+ if(!realStatus||realStatus.dataset!=="tj_cv_cohort")throw Error("无法核对正式队列数据库状态");
+ if(realStatus.loaded){
+   $("loading").hidden=true;
+   $("workspace").hidden=true;
+   const notice=document.querySelector(".clinical-caution");
+   if(notice)notice.textContent="正式队列数据库已导入 "+number(realStatus.rows)+" 条记录，字段元数据 "+number(realStatus.field_metadata_count)+" 项。为保护真实临床数据，个体记录查询在字段权限、审计和安全测试完成前暂不开放。";
+   return;
+ }
  const summary=await rpc("clinical_preview_summary");
  if(!summary||summary.synthetic!==true)throw Error("服务器未返回合成数据标识，已停止展示");
  state.summary=summary;
