@@ -1,26 +1,16 @@
-# Clinical Research Hub — Synthetic API Preview
+# 天津心血管疾病+队列 · 安全查询平台
 
-This folder contains a **synthetic-data-only** preview of the protected clinical research database.
-The source repository intentionally does not include patient data, real CSV files, or columns derived from the uploaded clinical CSV.
+正式入口： https://lil48649.github.io/cluster-site/clinical-preview/
 
-## Open the preview
+当前版本的数据库查询使用 **600条完全虚构的测试记录**；正式CSV尚未导入、尚未对成员开放。
 
-https://lil48649.github.io/cluster-site/clinical-preview/
+## 当前安全逻辑
 
-The preview reuses the existing Supabase member allowlist and TOTP second factor. No second enrollment is required for members whose verified account is still active.
+- 登录：项目组成员白名单 + Supabase Auth + 已验证 TOTP（AAL2）。
+- 页面：队列概览、队列数据检索和按条件生成的统计图表。
+- 数据：非公开数据库 schema，使用受控分页 RPC，每页最多50条。
+- 禁止：公开CSV链接、原始数据表的直接REST访问，以及网页整库下载按钮。
 
-## Database behavior
+真实数据导入后，必须另行审核字段级访问权限和统计汇总规则，再将测试接口切换为正式接口。数据记录不是因为界面没有下载按钮就绝对不能被复制。
 
-Only three authenticated, server-side RPCs are called:
-
-- `public.clinical_preview_summary()`: aggregate statistics
-- `public.clinical_preview_search(...)`: filtered, paginated records (maximum 50 per request)
-- `public.clinical_preview_distribution(...)`: grouped counts
-
-The 600 records in `clinical_preview.synthetic_cases` were generated exclusively by SQL and are not patient data. The table is stored in a non-exposed schema with RLS and membership/AAL2 validation. `anon` has neither direct table SELECT nor RPC execution rights.
-
-The client does not expose a file-upload, CSV download, or arbitrary SQL interface. This does **not** prevent extraction of data the server already authorizes a client to see. A production clinical system needs field minimization, audited access, query limits/rate controls, and legal authorization for the database's physical hosting location.
-
-The existing `/secure-preview/` and `/local-vault/` pages are separate and are not replaced.
-
-**Do not add the real clinical CSV to this or any public GitHub repository.** Do not deploy patient data to Supabase before the data owner authorizes the transfer and the relevant privacy and cross-border requirements are addressed.
+本目录只发布网站代码，不包含真实临床数据、患者标识符或真实字段清单。
