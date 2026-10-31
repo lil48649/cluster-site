@@ -105,7 +105,7 @@
   }
 
   window.CLINICAL_PREVIEW_RPC = async function (name, args) {
-    const permitted = ["clinical_preview_summary", "clinical_preview_search", "clinical_preview_distribution"];
+    const permitted = ["clinical_preview_summary", "clinical_preview_search", "clinical_preview_distribution", "tj_cv_cohort_status"];
     if (!permitted.includes(name)) throw new Error("未经允许的查询接口");
     if (!(await hasVerifiedMFA())) throw new Error("请完成项目组双因素认证");
     const token = await getAccessToken();
