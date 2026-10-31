@@ -1,5 +1,5 @@
 /*
- * GBD Research Hub: Supabase-managed MFA using native TOTP factors.
+ * Tianjin Cardiovascular Cohort: Supabase-managed MFA using native TOTP factors.
  * Password and 6-digit TOTP are verified by Supabase Auth, not browser code.
  * Private object Storage RLS requires project membership, current session,
  * and AAL2 with a verified TOTP factor. Never publish secret API keys.
@@ -7,8 +7,8 @@
 (function () {
   "use strict";
 
-  const cfg = window.GBD_SECURE_CONFIG || {};
-  const sessionKey = "gbd-native-totp-session-v2";
+  const cfg = window.TJ_CV_COHORT_CONFIG || {};
+  const sessionKey = "tj-cv-cohort-totp-session-v1";
   const idleMs = 15 * 60 * 1000;
   const $ = (id) => document.getElementById(id);
   const ready = /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(cfg.url || "") &&
@@ -122,7 +122,7 @@
     $("totpSecret").textContent = "";
     $("totpQr").removeAttribute("src");
     const script = document.createElement("script");
-    script.src = "app.js?v=clinical-preview-1";
+    script.src = "app.js?v=tj-cv-1";
     script.onerror = function () {
       appLoaded = false;
       document.documentElement.classList.remove("authenticated");
@@ -160,9 +160,9 @@
     const uri = typeof totp.uri === "string" && totp.uri.startsWith("otpauth://totp/")
       ? totp.uri
       : "otpauth://totp/" + encodeURIComponent(
-        "GBD Research Hub:" + $("loginUsername").value.trim()
+        "天津心血管疾病+队列:" + $("loginUsername").value.trim()
       ) + "?secret=" + encodeURIComponent(secret) +
-        "&issuer=" + encodeURIComponent("GBD Research Hub") +
+        "&issuer=" + encodeURIComponent("天津心血管疾病+队列") +
         "&algorithm=SHA1&digits=6&period=30";
 
     try {
@@ -237,7 +237,7 @@
     }
     const enrolled = await secure("/auth/v1/factors", {
       method: "POST",
-      body: JSON.stringify({ factor_type: "totp", friendly_name: "GBD Research Hub" })
+      body: JSON.stringify({ factor_type: "totp", friendly_name: "天津心血管疾病+队列" })
     });
     if (!enrolled || !enrolled.id || !enrolled.totp) {
       throw new Error("服务器没有返回身份验证器绑定信息。");
