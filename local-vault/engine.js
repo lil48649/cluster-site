@@ -83,7 +83,7 @@ function distribution(col,indices){
 async function load(file,job){
  store=null;
  const reader=file.stream().getReader(),decoder=new TextDecoder("utf-8",{fatal:true});
- let inQuotes=false,afterCR=false,field="",row=[],headers=null,sample=[],processed=0,sampleSize=1100,lastReport=0;
+ let inQuotes=false,pendingQuote=false,afterCR=false,field="",row=[],headers=null,sample=[],processed=0,sampleSize=1100,lastReport=0;
  const completeField=()=>{row.push(field);field="";};
  const completeRow=()=>{
   completeField();const completed=row;row=[];
@@ -97,7 +97,8 @@ async function load(file,job){
   for(let i=0;i<text.length;i++){
    const ch=text[i];
    if(afterCR){afterCR=false;if(ch==="\n")continue;}
-   if(inQuotes){if(ch==='"'){if(text[i+1]==='"'){field+='"';i++;}else inQuotes=false;}else field+=ch;continue;}
+   if(pendingQuote){pendingQuote=false;if(ch==='"'){field+='"';continue;}inQuotes=false;}
+   if(inQuotes){if(ch==='"')pendingQuote=true;else field+=ch;continue;}
    if(ch==='"'&&field===""){inQuotes=true;continue;}
    if(ch===","){completeField();continue;}
    if(ch==="\r"){completeRow();afterCR=true;continue;}
@@ -114,6 +115,7 @@ async function load(file,job){
    if(Date.now()-lastReport>450){lastReport=Date.now();postMessage({type:"progress",loaded:processed,size:file.size,rows:store?store.count:sample.length});}
   }
   chunk(decoder.decode());
+  if(pendingQuote){pendingQuote=false;inQuotes=false;}
   if(inQuotes)throw Error("CSV中存在未关闭的引号");
   if(field.length||row.length)completeRow();
   if(!store){store=beginColumns(headers||[],sample);for(const x of sample)addRow(x);}
