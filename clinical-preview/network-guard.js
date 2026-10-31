@@ -15,7 +15,8 @@ const allowed=[
  /^\/auth\/v1\/logout$/,
  /^\/rest\/v1\/rpc\/secure_my_membership$/,
  /^\/rest\/v1\/rpc\/secure_has_verified_mfa$/,
- /^\/rest\/v1\/rpc\/clinical_preview_(?:summary|search|distribution)$/
+ /^\/rest\/v1\/rpc\/clinical_preview_(?:summary|search|distribution)$/,
+ /^\/rest\/v1\/rpc\/tj_cv_cohort_status$/
 ];
 Object.defineProperty(window,"fetch",{configurable:false,writable:false,value:function(input,options){
  const address=typeof input==="string"?input:input instanceof URL?input.toString():input?.url||"";
