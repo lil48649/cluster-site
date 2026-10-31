@@ -26,7 +26,7 @@ function makeLayout(){
  <div class="vault-right">
   <header class="vault-top"><div><small>科研数据 / 本地临床数据</small><strong id="pageName">数据总览</strong></div>
    <div class="vault-actions"><span class="vault-shield"> <span class="vault-dot"></span> 双因素认证已通过</span>
-   <button class="vault-outline" id="clearData" disabled>清除本机数据</button><button id="logoutBtn" class="vault-outline">退出账号</button></div></header>
+   <button class="vault-outline" id="clearData" disabled>清除本机数据</button></div></header>
   <main class="vault-main">
    <section class="vault-hero"><div><div class="vault-eyebrow">CLINICAL RESEARCH WORKSPACE</div>
      <h1>临床科研数据管理系统</h1><p>选择本机CSV，浏览器内完成筛选、分布统计与质量核验。记录不上传服务器。</p></div>
@@ -78,6 +78,7 @@ function makeLayout(){
    <footer class="vault-footer">GBD Research Hub · Local Clinical Vault · 无患者数据上传 · 浏览器会话结束即释放</footer>
   </main>
  </div>`;
+ const existingLogout=byId("logoutBtn");if(existingLogout){existingLogout.hidden=false;existingLogout.className="vault-outline";holder.querySelector(".vault-actions").appendChild(existingLogout);}
  holder.querySelectorAll(".vault-nav").forEach(btn=>btn.addEventListener("click",()=>switchView(btn.dataset.view)));
  byId("vaultFile").addEventListener("change",e=>{if(e.target.files?.[0])load(e.target.files[0]);});
  byId("clearData").addEventListener("click",()=>{if(confirm("确定清除当前浏览器中的所有临床数据？此操作不删除你的原 CSV 文件。")){worker();state.ready=false;state.columns=[];state.result=null;byId("datasetContent").hidden=true;byId("uploader").hidden=false;byId("loadStatus").textContent="本地数据已清除。";byId("vaultFile").value="";byId("clearData").disabled=true;}});
