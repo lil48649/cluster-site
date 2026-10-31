@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>Local Clinical Vault · 临床科研本地数据管理</title>
+<link rel="stylesheet" href="../secure-preview/styles.css?v=local-vault-1">
+<link rel="stylesheet" href="vault.css?v=local-vault-1">
+</head><body>
+<section class="login-screen" id="loginScreen" aria-labelledby="loginTitle">
+  <div class="login-topline"><div class="login-top-brand"><span class="login-top-cross">✚</span><div><strong>GBD RESEARCH HUB</strong><small>CHRONIC DISEASE RESEARCH PLATFORM</small></div></div><span class="login-top-right">本地临床科研 · 私有工作台</span></div>
+  <div class="login-heading"><span>RESEARCH DATA MANAGEMENT</span><h1 id="loginTitle">慢性病科研数据管理系统</h1><p>临床研究数据 · 本机分析与严格保密</p></div>
+  <div class="login-card">
+    <div class="login-visual" aria-hidden="true">
+      <div class="login-visual-glow"></div><div class="medical-panel"><div class="medical-panel-top"><span>GBD / 2023</span><span>● ● ●</span></div><div class="medical-panel-content"><div class="medical-panel-symbol">✚</div><div class="medical-panel-lines"><b></b><b></b><b></b></div></div><div class="medical-chart"><svg width="220" height="72" viewBox="0 0 220 72" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M0 53 L25 53 L37 37 L51 57 L68 12 L84 63 L107 40 L124 40 L138 21 L158 48 L178 29 L198 43 L220 16" fill="none" stroke="#2987ed" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+      <div class="login-visual-footer"><span class="visual-status-dot"></span> IHME GLOBAL BURDEN OF DISEASE <span class="visual-year">1990 — 2023</span></div>
+    </div>
+    <div class="login-form-wrap">
+      <div class="login-form-eyebrow">WELCOME BACK</div><h2>登录管理平台</h2><p class="login-subtitle">请使用项目组账号登录科研数据管理系统</p>
+      <form id="loginForm" autocomplete="on" novalidate>
+        <label for="loginRole">登录角色</label><div class="login-field"><span class="field-prefix">▦</span><select id="loginRole" name="role" required><option value="" selected disabled>请选择登录角色</option><option value="project">项目组</option></select></div>
+        <label for="loginUsername">项目组成员邮箱</label><div class="login-field"><span class="field-prefix">♙</span><input type="email" id="loginUsername" name="email" autocomplete="email" spellcheck="false" placeholder="请输入已授权邮箱" required maxlength="150"></div>
+        <label for="loginPassword">个人登录密码</label><div class="login-field"><span class="field-prefix">◇</span><input type="password" id="loginPassword" name="password" autocomplete="current-password" placeholder="请输入密码" required><button id="togglePassword" class="login-eye" type="button" aria-label="显示密码" aria-pressed="false">显示</button></div>
+        <div class="login-options"><label class="remember-label"><input type="checkbox" id="rememberSession" checked> 本次浏览器会话保持登录</label></div>
+        <p class="login-error" id="loginError" role="alert" aria-live="polite"></p>
+        <button class="login-submit" type="submit" id="loginSubmit">验证账号并继续 <span>→</span></button>
+      </form>
+      <form id="secondFactorForm" class="second-factor-form" hidden autocomplete="off" novalidate>
+        <div class="second-factor-step"><span class="second-factor-step-icon">02</span><div><strong>第二步 · 验证码核验</strong><p>账号密码已验证，请输入手机身份验证器中的动态验证码。</p></div></div>
+        <label for="challengeInput">手机动态验证码（TOTP）</label>
+        <div id="totpSetup" class="totp-setup" hidden>
+          <strong>首次登录 · 绑定手机验证器</strong>
+          <p>请使用 Google Authenticator 或 Microsoft Authenticator 扫描二维码。请勿截图或向他人透露密钥。</p>
+          <div id="totpQr" class="totp-qr" role="img" aria-label="手机身份验证器绑定二维码" hidden></div>
+          <details class="totp-manual" id="totpManual"><summary>无法扫码？展开手动绑定密钥</summary><code id="totpSecret"></code></details>
+          <p>绑定后请在下方输入验证器显示的6位数字，完成首次验证。</p>
+        </div>
+        <div class="captcha-box"><span class="otp-mail-hint"><span aria-hidden="true">▣</span> 在手机身份验证器中查看6位数字</span></div>
+        <div class="login-field"><span class="field-prefix">▣</span><input type="text" id="challengeInput" name="otp" inputmode="numeric" pattern="[0-9]{6}" autocomplete="one-time-code" spellcheck="false" placeholder="请输入验证器显示的6位数字" maxlength="6" required></div>
+        <p class="captcha-lifetime">验证码通常每30秒更新一次；输错后可使用最新一组数字重试。</p>
+        <p class="login-error" id="challengeError" role="alert" aria-live="polite"></p>
+        <button class="login-submit" id="secondFactorSubmit" type="submit">验证并进入 <span>→</span></button>
+        <button id="returnToLogin" class="back-to-login" type="button">← 返回账号登录</button>
+      </form>
+      <p class="login-safety-note">登录需进行 Supabase 双因素认证；你随后选取的本机 CSV 只在浏览器内处理，不发送至 Supabase、GitHub 或其他网络地址。</p>
+    </div>
+  </div>
+  <div class="login-bottom"><span>© GBD Research Hub · 科研数据平台</span><span>数据服务仅供科研参考</span></div>
+  <div class="login-cityline" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+</section>
+<div id="app" class="app"></div>
+<button id="logoutBtn" type="button" hidden>退出登录</button>
+<script src="../secure-preview/secure-config.js?v=secure-1" defer></script>
+<script src="../secure-preview/vendor/qrcodegen.min.js?v=totp-svg-2" defer></script>
+<script src="../secure-preview/auth.js?v=local-vault-1" defer></script>
+</body></html>
