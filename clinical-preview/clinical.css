@@ -24,3 +24,31 @@
  .clinical-security{grid-template-columns:1fr}
  .clinical-filters .vault-primary,.clinical-filters .vault-outline{width:100%}
 }
+
+/* Tianjin cardiovascular cohort visual identity */
+:root{--tj-navy:#17334a;--tj-red:#be4450;--tj-teal:#268c91;--tj-soft:#f6f8fb}
+.vault-shell{background:#f5f7fa}
+.vault-sidebar{background:linear-gradient(175deg,#142f45 0%,#153d4e 55%,#102938 100%)}
+.vault-logo{background:linear-gradient(140deg,#d45d67,#a93449);font-size:25px;box-shadow:0 4px 14px rgba(181,60,75,.23)}
+.vault-brand strong{font-size:14px;line-height:1.5;max-width:170px}
+.vault-nav.active{background:linear-gradient(90deg,#ba4b58,#8e455d)}
+.vault-nav:hover{background:#234957}
+.vault-hero{position:relative;overflow:hidden;background:linear-gradient(112deg,#173950 0%,#225464 65%,#286b73 100%);padding:39px 38px}
+.vault-hero:after{content:"";position:absolute;pointer-events:none;top:17px;right:-6px;width:360px;height:132px;opacity:.20;background-repeat:no-repeat;background-position:center;background-size:contain;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='380' height='132' viewBox='0 0 380 132'%3E%3Cpath d='M0 74 H62 L78 56 L96 92 L125 23 L148 114 L169 71 L201 71 L224 45 L247 87 L266 72 H380' fill='none' stroke='%23ffffff' stroke-width='3.6' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E")}
+.vault-hero h1{font-weight:760;font-size:29px;letter-spacing:.15px}
+.vault-eyebrow{color:#b9e7df}
+.vault-hero-chip{position:relative;z-index:1;background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.34)}
+.vault-stat strong{color:#1f5262}
+#statMatched{color:#ad4857}
+.vault-block-head h2{color:#1e4c60}
+.vault-bar-track>div{background:linear-gradient(90deg,#c85564,#2b9296)}
+.vault-primary{border-color:#237a85;background:#227e89}
+.vault-primary:hover{background:#17636b}
+.clinical-caution{border-color:#d9e6e7;background:#eff7f8;color:#486e75}
+.clinical-caution strong{color:#2b747b}
+.vault-shield{background:#eef9f6;color:#367367}
+.vault-shield .vault-dot{background:#25a788}
+.login-top-brand strong{letter-spacing:.65px}
+.login-heading h1{letter-spacing:.1px}
+.login-visual-footer{font-size:11px}
+@media(max-width:690px){.vault-hero{padding:27px 22px}.vault-hero h1{font-size:24px}.vault-brand strong{font-size:13px}}
