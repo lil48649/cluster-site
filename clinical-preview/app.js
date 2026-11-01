@@ -35,7 +35,8 @@ function base(){
   '</section>'+
   '<section class="vault-pane active" data-pane="overview">'+
     '<div class="vault-block"><div class="vault-block-head"><div><h2>队列数据概况</h2><p>真实患者数据由数据库集中存储；每位成员按权限访问，无需在不同电脑重复上传</p></div></div>'+
-     '<div id="importSection">'+
+     '<div id="cohortChart" hidden><div class="vault-block-head"><div><h2>队列变量统计</h2><p>仅显示经过批准的字段，人数小于5的分组不单独显示</p></div><select id="chartField" class="vault-select"></select></div><div id="chartContent" class="vault-plot"></div></div>'+
+  '<div id="importSection">'+
       '<div class="vault-warning"><strong>首次导入：</strong>仅管理员可将本机原始 CSV 经加密连接写入私有数据库。浏览器不在本机永久保存文件，也不向 GitHub 传输记录。正式数据尚未入库时，不能展示真实记录。</div>'+
       '<label for="importFile" class="vault-primary">管理员选择 CSV，开始一次性导入</label><input id="importFile" type="file" accept=".csv,text/csv" hidden>'+
       '<p class="clinical-muted" id="importHelp">首次操作需要选取原始113 MB CSV。若网络中断，可重新选择同一文件恢复导入。</p>'+
@@ -68,6 +69,7 @@ function base(){
  root.querySelectorAll(".vault-nav").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.view)));
  $("importFile").addEventListener("change",e=>{if(e.target.files?.[0])startImport(e.target.files[0]);});
  $("fieldSearch").addEventListener("input",renderReview);
+ $("chartField").addEventListener("change",updateChart);
  $("saveFields").addEventListener("click",saveApprovedFields);
  $("apply").addEventListener("click",()=>{const v=$("filterValue").value.trim();state.filters=v?[{field:$("filterField").value,op:$("filterOp").value,value:v}]:[];state.page=1;search();});
  $("clear").addEventListener("click",()=>{$("filterValue").value="";state.filters=[];state.page=1;search();});
@@ -94,9 +96,18 @@ async function refresh(){
   state.fields=await rpc("tj_cv_fields",{p_include_hidden:false});
   $("visibleCount").textContent=fmt(state.fields.length);
   if(stat.admin){state.allFields=await rpc("tj_cv_fields",{p_include_hidden:true});$("permissionCard").hidden=false;renderReview();}
-  if(state.fields.length){$("searchBlock").hidden=false;$("searchUnavailable").hidden=true;renderFilterOptions();if(state.view==="records")await search();}
+  if(state.fields.length){$("searchBlock").hidden=false;$("searchUnavailable").hidden=true;renderFilterOptions();$("cohortChart").hidden=false;$("chartField").innerHTML=state.fields.map(f=>'<option value="'+esc(f.key)+'">'+esc(f.name)+'</option>').join("");await updateChart();if(state.view==="records")await search();}
   else {$("searchBlock").hidden=true;$("searchUnavailable").hidden=false;}
  }else{$("visibleCount").textContent="—";}
+}
+async function updateChart(){
+ if(!state.fields.length)return;
+ const key=$("chartField").value||state.fields[0].key;
+ try{const data=await rpc("tj_cv_distribution",{p_field:key});const bars=data.groups||[];
+  const m=Math.max(1,...bars.map(b=>Number(b.count)||0));
+  $("chartContent").innerHTML=bars.map(b=>'<div class="vault-bar"><span>'+esc(b.name)+'</span><div class="vault-bar-track"><div style="width:'+(100*b.count/m).toFixed(1)+'%"></div></div><strong>'+fmt(b.count)+'</strong></div>').join("")||
+    '<p class="clinical-muted">没有可公开的统计分组</p>';
+ }catch(e){$("chartContent").textContent="该字段统计暂不可用。";}
 }
 function renderReview(){
  const q=$("fieldSearch").value.trim().toLowerCase();
