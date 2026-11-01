@@ -144,17 +144,34 @@ async function startImport(file){
  if(!state.status?.admin||state.inProgress)return;
  if(!/\.csv$/i.test(file.name)){notice("请选择CSV文件。");return;}
  state.inProgress=true;notice("");
+ // Only the duration of a genuinely active import is protected from idle logout.
+ window.TJ_CV_IMPORT_LIFECYCLE?.(true);
+ const logout=$("logoutBtn");if(logout)logout.disabled=true;
+ $("importFile").value=""; // Re-selecting the same file must always trigger change.
  $("importHelp").textContent="正在计算SHA-256并分批传输。请保持此页面打开，不要关闭浏览器。";
  $("uploadProgress").hidden=false;$("uploadBar").style.width="0%";
- const w=new Worker("import-worker.js?v=tj-cv-import-fix-2");state.worker=w;
+ const w=new Worker("import-worker.js?v=tj-cv-resume-fix-3");state.worker=w;
  w.onmessage=async event=>{
   const m=event.data||{};
-  if(m.type==="progress"){
+  if(m.type==="resuming"){
+   const existing=Number(m.rows)||0;
+   $("uploadBar").style.width=Math.min(99,100*existing/163335).toFixed(1)+"%";
+   $("uploadText").textContent=existing>0
+     ?"已保存 "+fmt(existing)+" 条；从第 "+fmt(m.resume_from)+" 条开始补传。正在本机跳过已保存行，不重新上传。"
+     :"数据库尚无记录，将从第一条开始导入。";
+  }else if(m.type==="progress"){
    $("uploadBar").style.width=Math.min(99,100*m.bytes/m.total).toFixed(1)+"%";
    $("uploadText").textContent="已向数据库提交 "+fmt(m.rows)+" / 163,335 行（服务端批次确认）";
-  }else if(m.type==="error"){state.inProgress=false;notice("导入中断："+m.message+"。重新选择相同CSV可继续导入。");$("uploadText").textContent="导入暂停";w.terminate();}
+  }else if(m.type==="error"){
+   state.inProgress=false;window.TJ_CV_IMPORT_LIFECYCLE?.(false);
+   if($("logoutBtn"))$("logoutBtn").disabled=false;
+   notice("导入中断："+m.message+"。重新选择相同CSV可继续导入。");
+   $("uploadText").textContent="导入暂停";w.terminate();
+  }
   else if(m.type==="complete"){
-   state.inProgress=false;w.terminate();$("uploadBar").style.width="100%";$("uploadText").textContent="全部163,335条记录已导入";await refresh();
+   state.inProgress=false;window.TJ_CV_IMPORT_LIFECYCLE?.(false);
+   if($("logoutBtn"))$("logoutBtn").disabled=false;
+   w.terminate();$("uploadBar").style.width="100%";$("uploadText").textContent="全部163,335条记录已导入";await refresh();
   }else if(["begin","batch","finish"].includes(m.type)){
    try{
     let result;
@@ -162,7 +179,8 @@ async function startImport(file){
     if(m.type==="batch")result=await rpc("tj_cv_import_batch",{p_sha256:m.sha,p_rows:m.rows});
     if(m.type==="finish")result=await rpc("tj_cv_import_finish",{p_sha256:m.sha});
     if(m.type==="finish" ? result?.ready!==true : result?.accepted!==true)throw new Error("RPC_FAILED_ACK");
-    w.postMessage({type:"ack",accepted:true,new_rows:result?.new_rows||0});
+    w.postMessage({type:"ack",accepted:true,new_rows:result?.new_rows||0,
+       resume_from:result?.resume_from,continuous:result?.continuous,ready:result?.ready});
    }catch(e){
     const stage={begin:"登记文件",batch:"写入记录",finish:"完成核验"}[m.type]||"数据库操作";
     const code=String(e?.code||"NETWORK").replace(/[^A-Za-z0-9_-]/g,"").slice(0,15)||"UNKNOWN";
@@ -170,7 +188,11 @@ async function startImport(file){
    }
   }
  };
- w.onerror=()=>{state.inProgress=false;notice("本机解析程序出现错误，请刷新后重试同一个文件。");w.terminate();};
+ w.onerror=()=>{
+   state.inProgress=false;window.TJ_CV_IMPORT_LIFECYCLE?.(false);
+   if($("logoutBtn"))$("logoutBtn").disabled=false;
+   notice("本机解析程序出现错误，请刷新后重试同一个文件。");w.terminate();
+ };
  w.postMessage({type:"start",file});
 }
 async function init(){
