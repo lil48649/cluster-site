@@ -4,6 +4,7 @@
  */
 "use strict";
 let responseResolve=null,responseReject=null,busy=false;
+const FIELD_KEYS=Array.from({length:313},(_,i)=>"c"+String(i+1).padStart(3,"0"));
 const MISSING=new Set(["","NA","N/A","NAN","NULL","NONE","--","—","未检测","未测"]);
 function request(type,payload){
  return new Promise((resolve,reject)=>{
@@ -35,11 +36,16 @@ async function run(file){
   if(cells.length===1&&cells[0]==="")return;
   if(cells.length!==313)throw Error("CSV第"+(numRows+1)+"行列数异常");
   numRows++;if(numRows>163335)throw Error("CSV实际行数大于163335");
-  const values=cells.map(v=>MISSING.has(v.trim().toUpperCase())?null:v);
-  batch.push({line:numRows,v:values});
+  const encoded={source_line:numRows};
+  for(let k=0;k<313;k++){
+   const value=cells[k];
+   encoded[FIELD_KEYS[k]]=MISSING.has(value.trim().toUpperCase())?null:value;
+  }
+  batch.push(encoded);
   if(batch.length>=150)await flush();
  };
- const flush=async()=>{if(!batch.length)return;const payload=batch;batch=[];await request("batch",{sha,rows:payload});
+ const flush=async()=>{if(!batch.length)return;const payload=batch;batch=[];const ack=await request("batch",{sha,rows:payload});
+  if(!ack.accepted)throw Error("服务器没有确认数据批次写入");
   if(Date.now()-lastReport>250){lastReport=Date.now();postMessage({type:"progress",rows:numRows,bytes:doneBytes,total:file.size});}};
  const parse=async text=>{
   for(let i=0;i<text.length;i++){
