@@ -10,6 +10,8 @@
   const cfg = window.TJ_CV_COHORT_CONFIG || {};
   const sessionKey = "tj-cv-cohort-totp-session-v1";
   const idleMs = 15 * 60 * 1000;
+  // Grace window is renewed ONLY by successful, MFA-checked server import RPCs.
+  const importGraceMs = 4 * 60 * 1000;
   const $ = (id) => document.getElementById(id);
   const ready = /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(cfg.url || "") &&
     /^sb_publishable_/.test(cfg.publishableKey || "");
@@ -21,6 +23,30 @@
   let pendingEnrollment = false;
   let appLoaded = false;
   let busyLogout = false;
+  let importActive = false;
+  let importLastConfirmed = 0;
+
+  function uploadRecentlyConfirmed() {
+    return importActive && Date.now() - importLastConfirmed < importGraceMs;
+  }
+
+  function expiredByInactivity() {
+    return !!session && Date.now() - lastActivity >= idleMs && !uploadRecentlyConfirmed();
+  }
+
+  // An explicit upload lifecycle keeps long-running imports from being treated
+  // as idle user sessions; it NEVER bypasses MFA, JWT expiry, or server policy.
+  window.TJ_CV_IMPORT_LIFECYCLE = function (active) {
+    if (!session) return;
+    importActive = !!active;
+    if (importActive) {
+      importLastConfirmed = Date.now();
+    } else {
+      importLastConfirmed = 0;
+      lastActivity = Date.now();
+      if (keepSession) saveSession();
+    }
+  };
 
   function errText(value) {
     return String(value && (value.msg || value.error_description || value.message || value.error) || "网络或服务器错误");
@@ -114,8 +140,17 @@
     if (!permitted.includes(name)) throw new Error("未经允许的查询接口");
     if (!(await hasVerifiedMFA())) throw new Error("请完成项目组双因素认证");
     const token = await getAccessToken();
-    return request("/rest/v1/rpc/" + name,
+    const result = await request("/rest/v1/rpc/" + name,
       { method: "POST", body: JSON.stringify(args || {}) }, token);
+    if (importActive &&
+        ["tj_cv_import_begin", "tj_cv_import_batch", "tj_cv_import_finish"].includes(name) &&
+        (result?.accepted === true || result?.ready === true)) {
+      // A confirmed import batch is legitimate activity, even with no mouse clicks.
+      importLastConfirmed = Date.now();
+      lastActivity = Date.now();
+      if (keepSession && Date.now() - lastSave > 20000) saveSession();
+    }
+    return result;
   };
 
   function openPortal() {
@@ -127,7 +162,7 @@
     $("totpSecret").textContent = "";
     $("totpQr").removeAttribute("src");
     const script = document.createElement("script");
-    script.src = "app.js?v=tj-cv-import-fix-2";
+    script.src = "app.js?v=tj-cv-resume-fix-3";
     script.onerror = function () {
       appLoaded = false;
       document.documentElement.classList.remove("authenticated");
@@ -255,6 +290,7 @@
     if (busyLogout) return;
     busyLogout = true;
     try {
+      importActive = false;
       if (session) {
         const token = await getAccessToken();
         await request("/auth/v1/logout", { method: "POST", body: "{}" }, token);
@@ -355,7 +391,7 @@
 
   function recordActivity() {
     if (!session || busyLogout) return;
-    if (Date.now() - lastActivity >= idleMs) {
+    if (expiredByInactivity()) {
       signOut();
       return;
     }
@@ -366,10 +402,10 @@
     window.addEventListener(event, recordActivity, { passive: true });
   });
   window.addEventListener("focus", function () {
-    if (session && Date.now() - lastActivity >= idleMs) signOut();
+    if (expiredByInactivity()) signOut();
   });
   setInterval(function () {
-    if (session && Date.now() - lastActivity >= idleMs) signOut();
+    if (expiredByInactivity()) signOut();
   }, 30000);
 
   (async function restore() {
