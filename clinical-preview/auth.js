@@ -105,7 +105,7 @@
   }
 
   window.CLINICAL_PREVIEW_RPC = async function (name, args) {
-    const permitted = ["clinical_preview_summary", "clinical_preview_search", "clinical_preview_distribution", "tj_cv_cohort_status"];
+    const permitted = ["tj_cv_cohort_status","tj_cv_import_progress","tj_cv_import_begin","tj_cv_import_batch","tj_cv_import_finish","tj_cv_fields","tj_cv_admin_set_visible","tj_cv_search"];
     if (!permitted.includes(name)) throw new Error("未经允许的查询接口");
     if (!(await hasVerifiedMFA())) throw new Error("请完成项目组双因素认证");
     const token = await getAccessToken();
@@ -122,7 +122,7 @@
     $("totpSecret").textContent = "";
     $("totpQr").removeAttribute("src");
     const script = document.createElement("script");
-    script.src = "app.js?v=tj-cv-1";
+    script.src = "app.js?v=tj-cv-production-1";
     script.onerror = function () {
       appLoaded = false;
       document.documentElement.classList.remove("authenticated");
