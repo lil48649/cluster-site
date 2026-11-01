@@ -115,14 +115,32 @@ function renderReview(){
  $("fieldReview").innerHTML=list.map(f=>'<label class="cohort-field-row"><input type="checkbox" data-pos="'+f.position+'"'+(f.visible?' checked':'')+'><span>'+esc(f.name)+'</span><small>'+esc(f.type)+'</small></label>').join("");
 }
 async function saveApprovedFields(){
- if(!state.status?.admin)return;
- const checked=[...document.querySelectorAll('#fieldReview input[type="checkbox"]:checked')].map(x=>Number(x.dataset.pos));
- const unseen=state.allFields.filter(f=>f.visible&&!document.querySelector('#fieldReview input[data-pos="'+f.position+'"]')).map(x=>x.position);
- const selected=[...new Set([...checked,...unseen])];
+ if(!state.status?.admin){notice("当前会话无管理员权限，请重新登录。");return;}
+ const checked=[...document.querySelectorAll('#fieldReview input[type="checkbox"]:checked')]
+   .map(x=>Number(x.dataset.pos));
+ const unseen=state.allFields.filter(f=>f.visible &&
+   !document.querySelector('#fieldReview input[data-pos="'+f.position+'"]')).map(x=>f.position);
+ const selected=[...new Set([...checked,...unseen])].sort((a,b)=>a-b);
+ if(!selected.every(x=>Number.isInteger(x)&&x>=1&&x<=313)){
+   notice("字段编号异常，请刷新后重新选择。");return;
+ }
  if(selected.length>15){notice("最多开放15个字段，请先减少勾选项。");return;}
- if(!confirm("确定向所有授权项目组成员开放所选的 "+selected.length+" 个字段吗？请先确认不包含患者身份标识或不宜共享的敏感信息。"))return;
- try{await rpc("tj_cv_admin_set_visible",{p_positions:selected});notice("");await refresh();}
- catch(e){notice("保存字段授权失败，请检查管理员权限和字段数量。");}
+ if(!confirm("确定向所有授权项目组成员开放所选的 "+selected.length+
+   " 个字段吗？请先确认不包含患者身份标识或不宜共享的敏感信息。"))return;
+ const btn=$("saveFields");if(btn)btn.disabled=true;
+ try{
+   const result=await rpc("tj_cv_admin_set_visible_v2",{p_selection:selected});
+   if(result?.saved!==true||result?.approved!==selected.length)
+     throw Object.assign(new Error("SAVE_NOT_CONFIRMED"),{code:"SAVE_NOT_CONFIRMED"});
+   notice("");await refresh();
+ }catch(e){
+   const code=String(e?.code||"UNKNOWN").replace(/[^A-Za-z0-9_-]/g,"").slice(0,20)||"UNKNOWN";
+   const status=Number(e?.httpStatus)||0;
+   notice("字段授权未保存 ["+code+(status?"/HTTP "+status:"")+"]。"+
+     (code==="42501"?"管理员会话或双因素认证已失效，请重新登录。":
+      code==="22023"?"所选字段编号或数量不符合规定，请刷新并重新选择。":
+      "请将错误代码告知我排查；无需重新上传 CSV。"));
+ }finally{if(btn)btn.disabled=false;}
 }
 function renderFilterOptions(){
  $("filterField").innerHTML=state.fields.map(f=>'<option value="'+esc(f.key)+'">'+esc(f.name)+'</option>').join("");
