@@ -87,7 +87,7 @@ async function refresh(){
  state.status=stat;
  $("total").textContent=fmt(stat.imported);
  $("fieldCount").textContent=stat.ready?"313":"—";
- $("dataState").textContent=stat.ready?"已就绪":stat.status==="loading"?"导入中":"待导入";
+ $("dataState").textContent=stat.ready?"已就绪":stat.status==="loading"?"未完成·可续传":"待导入";
  $("importSection").hidden=stat.ready||!stat.admin;
  $("importNoAdmin").hidden=stat.ready||stat.admin;
  $("readyText").hidden=!stat.ready;
@@ -144,6 +144,7 @@ async function startImport(file){
  if(!state.status?.admin||state.inProgress)return;
  if(!/\.csv$/i.test(file.name)){notice("请选择CSV文件。");return;}
  state.inProgress=true;notice("");
+ $("dataState").textContent="正在上传";
  // Only the duration of a genuinely active import is protected from idle logout.
  window.TJ_CV_IMPORT_LIFECYCLE?.(true);
  const logout=$("logoutBtn");if(logout)logout.disabled=true;
@@ -165,6 +166,7 @@ async function startImport(file){
   }else if(m.type==="error"){
    state.inProgress=false;window.TJ_CV_IMPORT_LIFECYCLE?.(false);
    if($("logoutBtn"))$("logoutBtn").disabled=false;
+   $("dataState").textContent="已暂停·可续传";
    notice("导入中断："+m.message+"。重新选择相同CSV可继续导入。");
    $("uploadText").textContent="导入暂停";w.terminate();
   }
@@ -191,6 +193,7 @@ async function startImport(file){
  w.onerror=()=>{
    state.inProgress=false;window.TJ_CV_IMPORT_LIFECYCLE?.(false);
    if($("logoutBtn"))$("logoutBtn").disabled=false;
+   $("dataState").textContent="已暂停·可续传";
    notice("本机解析程序出现错误，请刷新后重试同一个文件。");w.terminate();
  };
  w.postMessage({type:"start",file});
