@@ -73,7 +73,12 @@
     });
     if (options.raw) return response;
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(errText(data));
+    if (!response.ok) {
+      const error = new Error(errText(data));
+      error.code = String(data.code || "HTTP_" + response.status);
+      error.httpStatus = response.status;
+      throw error;
+    }
     return data;
   }
 
@@ -122,7 +127,7 @@
     $("totpSecret").textContent = "";
     $("totpQr").removeAttribute("src");
     const script = document.createElement("script");
-    script.src = "app.js?v=tj-cv-production-1";
+    script.src = "app.js?v=tj-cv-import-fix-2";
     script.onerror = function () {
       appLoaded = false;
       document.documentElement.classList.remove("authenticated");
