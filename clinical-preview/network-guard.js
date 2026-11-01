@@ -1,6 +1,6 @@
 /* Local Vault outbound network allow-list.
  * Only the existing login/TOTP workflow and synthetic-demo RPCs may make network requests.
- * Patient CSV contents are never sent through any permitted endpoint.
+ * Authorized administrators may upload CSV chunks only to the protected import_batch RPC.
  */
 (function(){
 "use strict";
@@ -16,7 +16,8 @@ const allowed=[
  /^\/rest\/v1\/rpc\/secure_my_membership$/,
  /^\/rest\/v1\/rpc\/secure_has_verified_mfa$/,
  /^\/rest\/v1\/rpc\/clinical_preview_(?:summary|search|distribution)$/,
- /^\/rest\/v1\/rpc\/tj_cv_cohort_status$/
+ /^\/rest\/v1\/rpc\/tj_cv_cohort_status$/,
+ /^\/rest\/v1\/rpc\/tj_cv_(?:import_progress|import_begin|import_batch|import_finish|fields|admin_set_visible|search)$/
 ];
 Object.defineProperty(window,"fetch",{configurable:false,writable:false,value:function(input,options){
  const address=typeof input==="string"?input:input instanceof URL?input.toString():input?.url||"";
