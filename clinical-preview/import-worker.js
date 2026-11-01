@@ -25,17 +25,27 @@ async function run(file){
  const reader=file.stream().getReader();
  let cell="",row=[],header=null,numRows=0,quote=false,pendingQuote=false,afterCR=false,first=true;
  let batch=[],doneBytes=0,lastReport=0;
+ let resumeFrom=1;
  const finishCell=()=>{row.push(cell);cell="";};
  const finishRow=async()=>{
   finishCell();const cells=row;row=[];
   if(first){first=false;header=cells.map((s,i)=>i===0?s.replace(/^\uFEFF/,""):s);
    if(header.length!==313||new Set(header).size!==313)throw Error("CSV字段必须是313个不重复名称");
-   await request("begin",{sha,headers:header,rows:163335});
+   const init=await request("begin",{sha,headers:header,rows:163335});
+   if (!init.accepted) throw new Error("导入登记未获确认");
+   resumeFrom=Number(init.resume_from);
+   if (!Number.isInteger(resumeFrom) || resumeFrom<1 || resumeFrom>163336)
+     throw new Error("数据库续传游标无效，已停止上传");
+   postMessage({type:"resuming",rows:resumeFrom-1,resume_from:resumeFrom,
+     continuous:init.continuous!==false,already_complete:init.ready===true});
    return;
   }
   if(cells.length===1&&cells[0]==="")return;
   if(cells.length!==313)throw Error("CSV第"+(numRows+1)+"行列数异常");
   numRows++;if(numRows>163335)throw Error("CSV实际行数大于163335");
+  // The file is parsed locally from the beginning for validation, but
+  // previously confirmed rows are NOT re-encoded, queued, or uploaded.
+  if(numRows<resumeFrom)return;
   const encoded={source_line:numRows};
   for(let k=0;k<313;k++){
    const value=cells[k];
