@@ -1,161 +1,163 @@
-/* 天津心血管疾病+队列 — SYNTHETIC DATA ONLY.
- * Reads exclusively 3 server-side, allowlisted, read-only RPCs.
- * No raw CSV download, arbitrary SQL, or direct table access.
+/* 天津心血管疾病+队列 / 正式数据管理
+ * Patient data: never GitHub, never browser storage, never CSV/Excel export.
+ * Single-use admin importer and least-privilege paged database access only.
  */
 (function(){
 "use strict";
 const $=id=>document.getElementById(id);
-const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const number=v=>Number(v??0).toLocaleString("zh-CN");
-const fnum=v=>(v===null||v===undefined)?"—":Number(v).toLocaleString("zh-CN",{maximumFractionDigits:1});
-const state={page:1,size:20,filters:{p_sex:null,p_cohort:null,p_age_min:null,p_age_max:null},chart:"cohort",active:"overview",summary:null,search:null,requestId:0,chartId:0};
-const displayBool=v=>v===true?"是":"否";
-const sexName=x=>x==="Male"?"男性":x==="Female"?"女性":"全部";
-const cohortName=x=>x||"全部组别";
-const schema=[["id","记录编号"],["sex","性别"],["age","年龄"],["cohort","测试分组"],["hypertension","模拟高血压"],["diabetes","模拟糖尿病"],["outcome","模拟结局"],["bmi","模拟 BMI"]];
-function renderShell(){
- const app=$("app");app.className="app vault-shell";
- app.innerHTML=
- '<aside class="vault-sidebar"><div class="vault-brand"><div class="vault-logo">♥</div><div><strong>天津心血管疾病+队列</strong><small>CARDIOVASCULAR COHORT</small></div></div>'+
- '<div class="vault-navtitle">项目管理</div>'+
- '<button type="button" class="vault-nav active" data-view="overview">▦　队列概览</button>'+
- '<button type="button" class="vault-nav" data-view="records">☷　队列数据检索</button>'+
- '<div class="vault-bottom"><span class="vault-dot"></span> Supabase · MFA · 只读查询</div></aside>'+
- '<div class="vault-right"><header class="vault-top"><div><small>天津心血管疾病+队列 / 科研数据库</small><strong id="pageTitle">队列概览</strong></div><div class="vault-actions">'+
- '<span class="vault-shield"><span class="vault-dot"></span> 已通过双因素认证</span></div></header>'+
- '<main class="vault-main"><section class="vault-hero"><div><div class="vault-eyebrow">TIANJIN CARDIOVASCULAR COHORT</div><h1>天津心血管疾病+队列</h1>'+
- '<p>心血管队列研究 · 安全检索 · 多设备协作 · 双因素认证</p></div><div class="vault-hero-chip">SYNTHETIC DATA · TEST ONLY</div></section>'+
- '<div class="clinical-caution"><strong>当前为虚构数据测试环境：</strong>全部记录由程序生成，不包含患者数据；正式数据库尚未导入。网页没有整库下载入口，单次查询最多返回50行。</div>'+
- '<div id="dataError" class="clinical-error" hidden></div>'+
- '<div id="loading" class="clinical-loading">正在验证授权并读取测试数据库…</div>'+
- '<section id="workspace" hidden>'+
- '<section class="vault-stats">'+
-   '<div class="vault-stat"><small>测试数据库总行数</small><strong id="statTotal">—</strong><span>程序生成的虚构记录</span></div>'+
-   '<div class="vault-stat"><small>模拟男性记录</small><strong id="statMale">—</strong><span>仅供界面联调</span></div>'+
-   '<div class="vault-stat"><small>模拟女性记录</small><strong id="statFemale">—</strong><span>仅供界面联调</span></div>'+
-   '<div class="vault-stat"><small>当前匹配结果</small><strong id="statMatched">—</strong><span>后端筛选 · 单页限额</span></div>'+
- '</section>'+
- '<section class="vault-pane active" data-pane="overview">'+
-   '<div class="vault-block"><div class="vault-block-head"><div><h2>模拟变量分布</h2><p>图表直接由数据库端聚合生成，不将整个数据表传输到浏览器</p></div>'+
-   '<select id="chartDim" class="vault-select"><option value="cohort">研究分组</option><option value="sex">性别</option><option value="age_group">年龄段</option>'+
-   '<option value="hypertension">模拟高血压</option><option value="diabetes">模拟糖尿病</option><option value="outcome">模拟结局</option></select></div>'+
-   '<div id="chartStatus" class="clinical-muted">查询统计中…</div><div id="bars" class="vault-plot"></div></div>'+
-   '<div class="vault-block"><div class="vault-block-head"><div><h2>测试数据库概览</h2><p>以下结果全部来自虚构记录，仅用于验证界面与权限</p></div></div>'+
-   '<div id="moreStats" class="vault-notes"></div></div>'+
- '</section>'+
- '<section class="vault-pane" data-pane="records">'+
-   '<div class="vault-block"><div class="vault-block-head"><div><h2>多条件筛选</h2><p>由服务器执行筛选、计数和分页；客户端不会一次读取全部记录</p></div></div>'+
-   '<form id="searchForm" class="clinical-filters">'+
-     '<label>性别<select id="filterSex" class="vault-select"><option value="">全部性别</option><option value="Male">男性</option><option value="Female">女性</option></select></label>'+
-     '<label>分组<select id="filterCohort" class="vault-select"><option value="">全部组别</option><option>Group A</option><option>Group B</option><option>Group C</option></select></label>'+
-     '<label>最小年龄<input id="ageMin" type="number" class="vault-input" min="0" max="120" placeholder="不限"></label>'+
-     '<label>最大年龄<input id="ageMax" type="number" class="vault-input" min="0" max="120" placeholder="不限"></label>'+
-     '<button type="submit" class="vault-primary">执行检索</button><button type="button" class="vault-outline" id="resetFilters">清空</button>'+
-   '</form></div>'+
-   '<div class="vault-block"><div class="vault-block-head"><div><h2>查询记录</h2><p>普通用户仅能分页浏览，无 CSV / Excel 下载入口</p></div>'+
-    '<label>每页 <select id="pageSize" class="vault-select"><option value="10">10</option><option value="20" selected>20</option><option value="50">50</option></select> 条</label></div>'+
-    '<div class="vault-table-scroll"><table class="vault-table"><thead><tr id="tableHead"></tr></thead><tbody id="tableBody"></tbody></table></div>'+
-    '<div class="vault-pagination"><span id="pageInfo">—</span><div><button class="vault-outline" id="prevPage" type="button">上一页</button>'+
-    '<button class="vault-outline" id="nextPage" type="button">下一页</button></div></div></div>'+
- '</section>'+
- '</section><footer class="vault-footer">天津心血管疾病+队列 · 数据管理平台 · 演示环境</footer></main></div>';
- const out=$("logoutBtn");if(out){out.hidden=false;out.className="vault-outline";app.querySelector(".vault-actions").appendChild(out);}
- app.querySelectorAll(".vault-nav").forEach(el=>el.addEventListener("click",()=>navigate(el.dataset.view)));
- $("searchForm").addEventListener("submit",e=>{e.preventDefault();applyFilters();});
- $("resetFilters").addEventListener("click",()=>{["filterSex","filterCohort","ageMin","ageMax"].forEach(id=>$(id).value="");applyFilters();});
- $("chartDim").addEventListener("change",e=>{state.chart=e.target.value;chartQuery();});
- $("pageSize").addEventListener("change",e=>{state.size=Number(e.target.value);state.page=1;recordQuery();});
- $("prevPage").addEventListener("click",()=>{state.page=Math.max(1,state.page-1);recordQuery();});
- $("nextPage").addEventListener("click",()=>{if(state.search&&state.page*state.size<state.search.total){state.page++;recordQuery();}});
+const esc=x=>String(x??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+const fmt=n=>Number(n??0).toLocaleString("zh-CN");
+const state={status:null,fields:[],allFields:[],page:1,size:20,filters:[],worker:null,inProgress:false,started:false,view:"overview"};
+const rpc=(name,args={})=>window.CLINICAL_PREVIEW_RPC(name,args);
+function notice(message){const el=$("error");el.textContent=message;el.hidden=!message;}
+function base(){
+ const root=$("app");root.className="app vault-shell";
+ root.innerHTML=
+ '<aside class="vault-sidebar">'+
+  '<div class="vault-brand"><div class="vault-logo">♥</div><div><strong>天津心血管疾病+队列</strong><small>TIANJIN CARDIOVASCULAR COHORT</small></div></div>'+
+  '<div class="vault-navtitle">队列科研管理</div>'+
+  '<button class="vault-nav active" type="button" data-view="overview">▦　队列概览</button>'+
+  '<button class="vault-nav" type="button" data-view="records">☷　队列数据检索</button>'+
+  '<div class="vault-bottom"><span class="vault-dot"></span> 研究成员身份验证 · 私有数据</div>'+
+ '</aside>'+
+ '<div class="vault-right"><header class="vault-top"><div><small>天津心血管疾病+队列 / 科研数据平台</small><strong id="pageTitle">队列概览</strong></div>'+
+ '<div class="vault-actions"><span class="vault-shield"><span class="vault-dot"></span> TOTP 双因素验证</span></div></header>'+
+ '<main class="vault-main"><section class="vault-hero"><div><div class="vault-eyebrow">TIANJIN CARDIOVASCULAR COHORT · SECURE DATA PLATFORM</div>'+
+ '<h1>天津心血管疾病+队列</h1><p>研究数据集中管理 · 授权访问 · 服务器端检索与分页</p></div><div class="vault-hero-chip">SECURE COHORT</div></section>'+
+ '<div id="error" class="clinical-error" hidden></div>'+
+ '<div id="load" class="clinical-loading">正在核验身份和正式数据库状态…</div>'+
+ '<div id="site" hidden>'+
+  '<section class="vault-stats">'+
+   '<div class="vault-stat"><small>正式入库记录</small><strong id="total">—</strong><span>服务器端记录数</span></div>'+
+   '<div class="vault-stat"><small>队列字段</small><strong id="fieldCount">—</strong><span>原始宽表字段</span></div>'+
+   '<div class="vault-stat"><small>可见字段</small><strong id="visibleCount">—</strong><span>管理员审核后开放</span></div>'+
+   '<div class="vault-stat"><small>数据状态</small><strong id="dataState">—</strong><span>受控数据库</span></div>'+
+  '</section>'+
+  '<section class="vault-pane active" data-pane="overview">'+
+    '<div class="vault-block"><div class="vault-block-head"><div><h2>队列数据概况</h2><p>真实患者数据由数据库集中存储；每位成员按权限访问，无需在不同电脑重复上传</p></div></div>'+
+     '<div id="importSection">'+
+      '<div class="vault-warning"><strong>首次导入：</strong>仅管理员可将本机原始 CSV 经加密连接写入私有数据库。浏览器不在本机永久保存文件，也不向 GitHub 传输记录。正式数据尚未入库时，不能展示真实记录。</div>'+
+      '<label for="importFile" class="vault-primary">管理员选择 CSV，开始一次性导入</label><input id="importFile" type="file" accept=".csv,text/csv" hidden>'+
+      '<p class="clinical-muted" id="importHelp">首次操作需要选取原始113 MB CSV。若网络中断，可重新选择同一文件恢复导入。</p>'+
+      '<div class="vault-progress" id="uploadProgress" hidden><div id="uploadBar"></div></div>'+
+      '<p id="uploadText" class="clinical-muted" aria-live="polite"></p>'+
+     '</div>'+
+     '<div id="importNoAdmin" class="vault-warning" hidden>正式数据尚未导入。请由项目管理员登录执行一次性导入。</div>'+
+     '<div id="readyText" class="vault-warning" hidden>正式数据已经导入。所有成员通过同一数据库检索，不需要再次上传CSV。</div>'+
+    '</div>'+
+    '<div class="vault-block" id="permissionCard" hidden><div class="vault-block-head"><div><h2>研究字段授权</h2><p>仅管理员可以审核字段；默认不开放任何患者级字段，单次最多选择15项</p></div>'+
+      '<button id="saveFields" class="vault-primary" type="button">保存可见字段</button></div>'+
+      '<p class="clinical-muted">请特别注意姓名、身份证号、联系电话、住院号以及可能重新识别患者的字段。未勾选字段不会进入普通成员的查询结果。</p>'+
+      '<input id="fieldSearch" class="vault-input" type="search" placeholder="搜索本次导入的临床字段…">'+
+      '<div id="fieldReview" class="cohort-field-list"></div></div>'+
+  '</section>'+
+  '<section class="vault-pane" data-pane="records">'+
+    '<div class="vault-block"><div class="vault-block-head"><div><h2>队列数据检索</h2><p>服务器端限制单页最多25条，查询仅返回经过管理员批准的字段</p></div></div>'+
+      '<div id="searchBlock" hidden>'+
+       '<div class="clinical-filters"><label>筛选字段<select id="filterField" class="vault-select"></select></label>'+
+       '<label>运算<select id="filterOp" class="vault-select"><option value="eq">等于</option><option value="gte">大于或等于</option><option value="lte">小于或等于</option></select></label>'+
+       '<label>筛选值<input id="filterValue" class="vault-input" placeholder="输入筛选值"></label>'+
+       '<button id="apply" class="vault-primary" type="button">查询</button><button id="clear" class="vault-outline" type="button">重置</button></div>'+
+       '<div class="vault-table-scroll"><table class="vault-table"><thead id="heads"></thead><tbody id="rows"></tbody></table></div>'+
+       '<div class="vault-pagination"><span id="pageText"></span><div><button type="button" id="prev" class="vault-outline">上一页</button><button type="button" id="next" class="vault-outline">下一页</button></div></div>'+
+      '</div><p id="searchUnavailable" class="clinical-muted">正式数据库及字段授权完成后开放检索。</p>'+
+    '</div>'+
+  '</section>'+
+ '</div><footer class="vault-footer">天津心血管疾病+队列 · 私有科研数据库 · 严禁未经授权的患者数据导出</footer></main></div>';
+ const logout=$("logoutBtn");if(logout){logout.hidden=false;logout.className="vault-outline";root.querySelector(".vault-actions").appendChild(logout);}
+ root.querySelectorAll(".vault-nav").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.view)));
+ $("importFile").addEventListener("change",e=>{if(e.target.files?.[0])startImport(e.target.files[0]);});
+ $("fieldSearch").addEventListener("input",renderReview);
+ $("saveFields").addEventListener("click",saveApprovedFields);
+ $("apply").addEventListener("click",()=>{const v=$("filterValue").value.trim();state.filters=v?[{field:$("filterField").value,op:$("filterOp").value,value:v}]:[];state.page=1;search();});
+ $("clear").addEventListener("click",()=>{$("filterValue").value="";state.filters=[];state.page=1;search();});
+ $("prev").addEventListener("click",()=>{state.page=Math.max(1,state.page-1);search();});
+ $("next").addEventListener("click",()=>{state.page+=1;search();});
 }
-function navigate(page){
- state.active=page;
- const labels={overview:"队列概览",records:"队列数据检索"};
- $("pageTitle").textContent=labels[page];
- document.querySelectorAll(".vault-nav").forEach(x=>x.classList.toggle("active",x.dataset.view===page));
- document.querySelectorAll(".vault-pane").forEach(x=>x.classList.toggle("active",x.dataset.pane===page));
+function navigate(view){
+ state.view=view;$("pageTitle").textContent=view==="overview"?"队列概览":"队列数据检索";
+ document.querySelectorAll(".vault-nav").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
+ document.querySelectorAll(".vault-pane").forEach(b=>b.classList.toggle("active",b.dataset.pane===view));
 }
-function errorMessage(e){
- const text=String(e?.message||e||"");
- return text.length>180?text.slice(0,180):text;
+async function refresh(){
+ const stat=await rpc("tj_cv_import_progress");
+ if(!stat||typeof stat.admin!=="boolean")throw Error("没有得到数据库权限状态");
+ state.status=stat;
+ $("total").textContent=fmt(stat.imported);
+ $("fieldCount").textContent=stat.ready?"313":"—";
+ $("dataState").textContent=stat.ready?"已就绪":stat.status==="loading"?"导入中":"待导入";
+ $("importSection").hidden=stat.ready||!stat.admin;
+ $("importNoAdmin").hidden=stat.ready||stat.admin;
+ $("readyText").hidden=!stat.ready;
+ $("site").hidden=false;$("load").hidden=true;
+ if(stat.ready){
+  state.fields=await rpc("tj_cv_fields",{p_include_hidden:false});
+  $("visibleCount").textContent=fmt(state.fields.length);
+  if(stat.admin){state.allFields=await rpc("tj_cv_fields",{p_include_hidden:true});$("permissionCard").hidden=false;renderReview();}
+  if(state.fields.length){$("searchBlock").hidden=false;$("searchUnavailable").hidden=true;renderFilterOptions();if(state.view==="records")await search();}
+  else {$("searchBlock").hidden=true;$("searchUnavailable").hidden=false;}
+ }else{$("visibleCount").textContent="—";}
 }
-function showError(message){$("dataError").textContent=message;$("dataError").hidden=false;}
-async function rpc(name,args){if(typeof window.CLINICAL_PREVIEW_RPC!=="function")throw Error("安全查询组件尚未就绪");return window.CLINICAL_PREVIEW_RPC(name,args);}
-async function start(){
- renderShell();
+function renderReview(){
+ const q=$("fieldSearch").value.trim().toLowerCase();
+ const list=state.allFields.filter(x=>!q||x.name.toLowerCase().includes(q));
+ $("fieldReview").innerHTML=list.map(f=>'<label class="cohort-field-row"><input type="checkbox" data-pos="'+f.position+'"'+(f.visible?' checked':'')+'><span>'+esc(f.name)+'</span><small>'+esc(f.type)+'</small></label>').join("");
+}
+async function saveApprovedFields(){
+ if(!state.status?.admin)return;
+ const checked=[...document.querySelectorAll('#fieldReview input[type="checkbox"]:checked')].map(x=>Number(x.dataset.pos));
+ const unseen=state.allFields.filter(f=>f.visible&&!document.querySelector('#fieldReview input[data-pos="'+f.position+'"]')).map(x=>x.position);
+ const selected=[...new Set([...checked,...unseen])];
+ if(selected.length>15){notice("最多开放15个字段，请先减少勾选项。");return;}
+ if(!confirm("确定向所有授权项目组成员开放所选的 "+selected.length+" 个字段吗？请先确认不包含患者身份标识或不宜共享的敏感信息。"))return;
+ try{await rpc("tj_cv_admin_set_visible",{p_positions:selected});notice("");await refresh();}
+ catch(e){notice("保存字段授权失败，请检查管理员权限和字段数量。");}
+}
+function renderFilterOptions(){
+ $("filterField").innerHTML=state.fields.map(f=>'<option value="'+esc(f.key)+'">'+esc(f.name)+'</option>').join("");
+}
+async function search(){
+ if(!state.status?.ready||!state.fields.length)return;
+ $("rows").innerHTML='<tr><td>正在读取受限数据库…</td></tr>';
  try{
- const realStatus=await rpc("tj_cv_cohort_status");
- if(!realStatus||realStatus.dataset!=="tj_cv_cohort")throw Error("无法核对正式队列数据库状态");
- if(realStatus.loaded){
-   $("loading").hidden=true;
-   $("workspace").hidden=true;
-   const notice=document.querySelector(".clinical-caution");
-   if(notice)notice.textContent="正式队列数据库已导入 "+number(realStatus.rows)+" 条记录，字段元数据 "+number(realStatus.field_metadata_count)+" 项。为保护真实临床数据，个体记录查询在字段权限、审计和安全测试完成前暂不开放。";
-   return;
- }
- const summary=await rpc("clinical_preview_summary");
- if(!summary||summary.synthetic!==true)throw Error("服务器未返回合成数据标识，已停止展示");
- state.summary=summary;
- $("loading").hidden=true;$("workspace").hidden=false;
- $("statTotal").textContent=number(summary.total);
- $("statMale").textContent=number(summary.male);
- $("statFemale").textContent=number(summary.female);
- $("moreStats").innerHTML=[
- ["模拟高血压",number(summary.hypertension),"虚构结果"],
- ["模拟糖尿病",number(summary.diabetes),"虚构结果"],
- ["模拟结局",number(summary.outcome),"虚构结果"],
- ["平均年龄",fnum(summary.mean_age),"虚构样本"],
- ["平均 BMI",fnum(summary.mean_bmi),"虚构样本"],
- ["API模式","按需查询","没有整库下载"]].map(x=>'<div class="vault-note"><strong>'+esc(x[0])+'</strong><b>'+esc(x[1])+'</b><small>'+esc(x[2])+'</small></div>').join("");
- await Promise.all([recordQuery(),chartQuery()]);
- }catch(e){$("loading").hidden=true;showError("测试数据库读取失败："+errorMessage(e));}
+  const r=await rpc("tj_cv_search",{p_page:state.page,p_size:20,p_filters:state.filters});
+  $("heads").innerHTML='<tr><th>内部行号</th>'+state.fields.map(f=>'<th>'+esc(f.name)+'</th>').join("")+'</tr>';
+  $("rows").innerHTML=r.rows.length?r.rows.map(x=>'<tr><td class="vault-rowid">'+fmt(x.source_line)+'</td>'+
+   state.fields.map(f=>'<td>'+esc(x[f.key]===null||x[f.key]===undefined?"—":x[f.key])+'</td>').join("")+'</tr>').join(""):
+   '<tr><td colspan="'+(1+state.fields.length)+'">无匹配记录</td></tr>';
+  $("pageText").textContent="匹配 "+fmt(r.total)+" 条 · 第 "+r.page+" 页 · 每页最多25条";
+  $("prev").disabled=r.page<=1;$("next").disabled=r.page*r.page_size>=r.total;
+ }catch(e){$("rows").innerHTML="";notice("查询暂不可用，请检查字段授权或查询权限。");}
 }
-function selectedFilters(){
- return {p_page:state.page,p_page_size:state.size,p_sex:state.filters.p_sex,p_cohort:state.filters.p_cohort,
- p_age_min:state.filters.p_age_min,p_age_max:state.filters.p_age_max};
+async function startImport(file){
+ if(!state.status?.admin||state.inProgress)return;
+ if(!/\.csv$/i.test(file.name)){notice("请选择CSV文件。");return;}
+ state.inProgress=true;notice("");
+ $("importHelp").textContent="正在计算SHA-256并分批传输。请保持此页面打开，不要关闭浏览器。";
+ $("uploadProgress").hidden=false;$("uploadBar").style.width="0%";
+ const w=new Worker("import-worker.js?v=tj-cv-prod-1");state.worker=w;
+ w.onmessage=async event=>{
+  const m=event.data||{};
+  if(m.type==="progress"){
+   $("uploadBar").style.width=Math.min(99,100*m.bytes/m.total).toFixed(1)+"%";
+   $("uploadText").textContent="已处理 "+fmt(m.rows)+" / 163,335 行，浏览器正在安全上传到受保护的数据库";
+  }else if(m.type==="error"){state.inProgress=false;notice("导入中断："+m.message+"。重新选择相同CSV可继续导入。");$("uploadText").textContent="导入暂停";w.terminate();}
+  else if(m.type==="complete"){
+   state.inProgress=false;w.terminate();$("uploadBar").style.width="100%";$("uploadText").textContent="全部163,335条记录已导入";await refresh();
+  }else if(["begin","batch","finish"].includes(m.type)){
+   try{
+    if(m.type==="begin")await rpc("tj_cv_import_begin",{p_sha256:m.sha,p_expected:m.rows,p_headers:m.headers});
+    if(m.type==="batch")await rpc("tj_cv_import_batch",{p_sha256:m.sha,p_rows:m.rows});
+    if(m.type==="finish")await rpc("tj_cv_import_finish",{p_sha256:m.sha});
+    w.postMessage({type:"ack"});
+   }catch(e){w.postMessage({type:"nack",message:"数据库拒绝此次导入请求。请核实管理员身份、文件结构和可用容量。"});}
+  }
+ };
+ w.onerror=()=>{state.inProgress=false;notice("本机解析程序出现错误，请刷新后重试同一个文件。");w.terminate();};
+ w.postMessage({type:"start",file});
 }
-function applyFilters(){
- const min=$("ageMin").value,max=$("ageMax").value;
- if((min!==""&&(Number(min)<0||Number(min)>120))||(max!==""&&(Number(max)<0||Number(max)>120))||
-    (min!==""&&max!==""&&Number(min)>Number(max))){
-  showError("年龄范围无效，请输入0至120之间的正确年龄。");return;
- }
- $("dataError").hidden=true;
- state.filters={p_sex:$("filterSex").value||null,p_cohort:$("filterCohort").value||null,p_age_min:min===""?null:Number(min),p_age_max:max===""?null:Number(max)};
- state.page=1;recordQuery();chartQuery();
+async function init(){
+ base();try{await refresh()}catch(e){$("load").hidden=true;notice("数据库连接未通过安全核验，请确认登录会话和双因素认证状态。");}
 }
-async function recordQuery(){
- const id=++state.requestId;
- $("tableBody").innerHTML='<tr><td colspan="8" class="clinical-muted">服务器检索中…</td></tr>';
- try{
-  const result=await rpc("clinical_preview_search",selectedFilters());
-  if(id!==state.requestId)return;
-  if(!result||result.synthetic!==true)throw Error("非测试数据响应被拒绝显示");
-  state.search=result;state.page=result.page;
-  $("statMatched").textContent=number(result.total);
-  $("tableHead").innerHTML=schema.map(x=>'<th>'+esc(x[1])+'</th>').join("");
-  $("tableBody").innerHTML=result.rows.length?result.rows.map(row=>'<tr>'+
-    '<td class="vault-rowid">'+number(row.id)+'</td><td>'+esc(sexName(row.sex))+'</td>'+
-    '<td>'+number(row.age)+'</td><td>'+esc(row.cohort)+'</td>'+
-    '<td>'+displayBool(row.hypertension)+'</td><td>'+displayBool(row.diabetes)+'</td>'+
-    '<td>'+displayBool(row.outcome)+'</td><td>'+fnum(row.bmi)+'</td></tr>').join(""):
-    '<tr><td colspan="8" class="clinical-muted">没有符合条件的测试记录</td></tr>';
-  const pages=Math.max(1,Math.ceil(result.total/result.page_size));
-  $("pageInfo").textContent="匹配 "+number(result.total)+" 条 · 第 "+result.page+" / "+pages+" 页 · 单页上限50条";
-  $("prevPage").disabled=result.page<=1;$("nextPage").disabled=result.page>=pages;
- }catch(e){if(id===state.requestId){showError("查询失败："+errorMessage(e));$("tableBody").innerHTML="";}}
-}
-async function chartQuery(){
- const id=++state.chartId;
- $("chartStatus").textContent="正在计算分布…";
- try{
- const r=await rpc("clinical_preview_distribution",{p_dimension:state.chart,p_sex:state.filters.p_sex,p_cohort:state.filters.p_cohort});
- if(id!==state.chartId)return;
- if(!r||r.synthetic!==true)throw Error("统计结果没有合成数据标识");
- const bars=r.bars||[];const max=Math.max(1,...bars.map(x=>x.count));
- $("chartStatus").textContent="共 "+bars.length+" 个分组，服务器端汇总";
- $("bars").innerHTML=bars.map(b=>'<div class="vault-bar"><span>'+esc(b.label)+'</span><div class="vault-bar-track"><div style="width:'+(100*b.count/max).toFixed(2)+'%"></div></div><strong>'+number(b.count)+'</strong></div>').join("")||'<div class="clinical-muted">没有可用数据</div>';
- }catch(e){if(id===state.chartId){$("chartStatus").textContent="图表读取失败："+errorMessage(e);$("bars").innerHTML="";}}
-}
-start();
+init();
 })();
