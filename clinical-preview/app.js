@@ -146,22 +146,28 @@ async function startImport(file){
  state.inProgress=true;notice("");
  $("importHelp").textContent="正在计算SHA-256并分批传输。请保持此页面打开，不要关闭浏览器。";
  $("uploadProgress").hidden=false;$("uploadBar").style.width="0%";
- const w=new Worker("import-worker.js?v=tj-cv-prod-1");state.worker=w;
+ const w=new Worker("import-worker.js?v=tj-cv-import-fix-2");state.worker=w;
  w.onmessage=async event=>{
   const m=event.data||{};
   if(m.type==="progress"){
    $("uploadBar").style.width=Math.min(99,100*m.bytes/m.total).toFixed(1)+"%";
-   $("uploadText").textContent="已处理 "+fmt(m.rows)+" / 163,335 行，浏览器正在安全上传到受保护的数据库";
+   $("uploadText").textContent="已向数据库提交 "+fmt(m.rows)+" / 163,335 行（服务端批次确认）";
   }else if(m.type==="error"){state.inProgress=false;notice("导入中断："+m.message+"。重新选择相同CSV可继续导入。");$("uploadText").textContent="导入暂停";w.terminate();}
   else if(m.type==="complete"){
    state.inProgress=false;w.terminate();$("uploadBar").style.width="100%";$("uploadText").textContent="全部163,335条记录已导入";await refresh();
   }else if(["begin","batch","finish"].includes(m.type)){
    try{
-    if(m.type==="begin")await rpc("tj_cv_import_begin",{p_sha256:m.sha,p_expected:m.rows,p_headers:m.headers});
-    if(m.type==="batch")await rpc("tj_cv_import_batch",{p_sha256:m.sha,p_rows:m.rows});
-    if(m.type==="finish")await rpc("tj_cv_import_finish",{p_sha256:m.sha});
-    w.postMessage({type:"ack"});
-   }catch(e){w.postMessage({type:"nack",message:"数据库拒绝此次导入请求。请核实管理员身份、文件结构和可用容量。"});}
+    let result;
+    if(m.type==="begin")result=await rpc("tj_cv_import_begin",{p_sha256:m.sha,p_expected:m.rows,p_headers:m.headers});
+    if(m.type==="batch")result=await rpc("tj_cv_import_batch",{p_sha256:m.sha,p_rows:m.rows});
+    if(m.type==="finish")result=await rpc("tj_cv_import_finish",{p_sha256:m.sha});
+    if(m.type==="finish" ? result?.ready!==true : result?.accepted!==true)throw new Error("RPC_FAILED_ACK");
+    w.postMessage({type:"ack",accepted:true,new_rows:result?.new_rows||0});
+   }catch(e){
+    const stage={begin:"登记文件",batch:"写入记录",finish:"完成核验"}[m.type]||"数据库操作";
+    const code=String(e?.code||"NETWORK").replace(/[^A-Za-z0-9_-]/g,"").slice(0,15)||"UNKNOWN";
+    w.postMessage({type:"nack",message:stage+"失败 ["+code+"]。请记录此错误代码，同一文件可以安全重试。"});
+   }
   }
  };
  w.onerror=()=>{state.inProgress=false;notice("本机解析程序出现错误，请刷新后重试同一个文件。");w.terminate();};
