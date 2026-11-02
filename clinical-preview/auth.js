@@ -1,5 +1,5 @@
 /*
- * Tianjin Cardiovascular Cohort: Supabase-managed MFA using native TOTP factors.
+ * Tianjin Chronic Disease Real-World Data Platform: Supabase-managed MFA using native TOTP factors.
  * Password and 6-digit TOTP are verified by Supabase Auth, not browser code.
  * Private object Storage RLS requires project membership, current session,
  * and AAL2 with a verified TOTP factor. Never publish secret API keys.
@@ -162,7 +162,7 @@
     $("totpSecret").textContent = "";
     $("totpQr").removeAttribute("src");
     const script = document.createElement("script");
-    script.src = "app.js?v=tj-cv-field-fix-4";
+    script.src = "app.js?v=tj-rwd-brand-1";
     script.onerror = function () {
       appLoaded = false;
       document.documentElement.classList.remove("authenticated");
@@ -200,9 +200,9 @@
     const uri = typeof totp.uri === "string" && totp.uri.startsWith("otpauth://totp/")
       ? totp.uri
       : "otpauth://totp/" + encodeURIComponent(
-        "天津心血管疾病+队列:" + $("loginUsername").value.trim()
+        "天津慢病真实世界数据平台:" + $("loginUsername").value.trim()
       ) + "?secret=" + encodeURIComponent(secret) +
-        "&issuer=" + encodeURIComponent("天津心血管疾病+队列") +
+        "&issuer=" + encodeURIComponent("天津慢病真实世界数据平台") +
         "&algorithm=SHA1&digits=6&period=30";
 
     try {
@@ -277,7 +277,7 @@
     }
     const enrolled = await secure("/auth/v1/factors", {
       method: "POST",
-      body: JSON.stringify({ factor_type: "totp", friendly_name: "天津心血管疾病+队列" })
+      body: JSON.stringify({ factor_type: "totp", friendly_name: "天津慢病真实世界数据平台" })
     });
     if (!enrolled || !enrolled.id || !enrolled.totp) {
       throw new Error("服务器没有返回身份验证器绑定信息。");
