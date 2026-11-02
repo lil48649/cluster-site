@@ -1,4 +1,4 @@
-# 天津心血管疾病+队列 · 正式科研数据管理平台
+# 天津慢病真实世界数据平台 · 正式科研数据管理平台
 
 公开仓库只发布前端代码、样式和公开客户端设置，**从未包含113 MB临床CSV或患者数据**。
 
@@ -11,7 +11,7 @@ https://lil48649.github.io/cluster-site/
 
 ## 技术结构
 
-- GitHub Pages 静态网站：天津心血管疾病+队列
+- GitHub Pages 静态网站：天津慢病真实世界数据平台
 - Supabase Auth 密码/TOTP；项目成员白名单；活动AAL2会话
 - Supabase PostgreSQL 私有 schema `clinical_private`：313原始字段和内部行号
 - 管理员专属首次CSV导入：SHA-256同文件识别、每批150行、网络中断后可重试
