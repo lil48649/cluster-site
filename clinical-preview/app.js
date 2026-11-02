@@ -1,4 +1,4 @@
-/* 天津心血管疾病+队列 / 正式数据管理
+/* 天津慢病真实世界数据平台 / 正式数据管理
  * Patient data: never GitHub, never browser storage, never CSV/Excel export.
  * Single-use admin importer and least-privilege paged database access only.
  */
@@ -14,28 +14,28 @@ function base(){
  const root=$("app");root.className="app vault-shell";
  root.innerHTML=
  '<aside class="vault-sidebar">'+
-  '<div class="vault-brand"><div class="vault-logo">♥</div><div><strong>天津心血管疾病+队列</strong><small>TIANJIN CARDIOVASCULAR COHORT</small></div></div>'+
-  '<div class="vault-navtitle">队列科研管理</div>'+
-  '<button class="vault-nav active" type="button" data-view="overview">▦　队列概览</button>'+
-  '<button class="vault-nav" type="button" data-view="records">☷　队列数据检索</button>'+
+  '<div class="vault-brand"><div class="vault-logo">▦</div><div><strong>天津慢病真实世界数据平台</strong><small>TIANJIN CHRONIC DISEASE RWD</small></div></div>'+
+  '<div class="vault-navtitle">真实世界数据管理</div>'+
+  '<button class="vault-nav active" type="button" data-view="overview">▦　数据概览</button>'+
+  '<button class="vault-nav" type="button" data-view="records">☷　数据检索</button>'+
   '<div class="vault-bottom"><span class="vault-dot"></span> 研究成员身份验证 · 私有数据</div>'+
  '</aside>'+
- '<div class="vault-right"><header class="vault-top"><div><small>天津心血管疾病+队列 / 科研数据平台</small><strong id="pageTitle">队列概览</strong></div>'+
+ '<div class="vault-right"><header class="vault-top"><div><small>天津慢病真实世界数据平台 / 科研数据平台</small><strong id="pageTitle">数据概览</strong></div>'+
  '<div class="vault-actions"><span class="vault-shield"><span class="vault-dot"></span> TOTP 双因素验证</span></div></header>'+
- '<main class="vault-main"><section class="vault-hero"><div><div class="vault-eyebrow">TIANJIN CARDIOVASCULAR COHORT · SECURE DATA PLATFORM</div>'+
- '<h1>天津心血管疾病+队列</h1><p>研究数据集中管理 · 授权访问 · 服务器端检索与分页</p></div><div class="vault-hero-chip">SECURE COHORT</div></section>'+
+ '<main class="vault-main"><section class="vault-hero"><div><div class="vault-eyebrow">TIANJIN CHRONIC DISEASE · REAL-WORLD DATA</div>'+
+ '<h1>天津慢病真实世界数据平台</h1><p>多病种数据整合 · 权限保护 · 真实世界研究</p></div><div class="vault-hero-chip">SECURE RWD</div></section>'+
  '<div id="error" class="clinical-error" hidden></div>'+
  '<div id="load" class="clinical-loading">正在核验身份和正式数据库状态…</div>'+
  '<div id="site" hidden>'+
   '<section class="vault-stats">'+
    '<div class="vault-stat"><small>正式入库记录</small><strong id="total">—</strong><span>服务器端记录数</span></div>'+
-   '<div class="vault-stat"><small>队列字段</small><strong id="fieldCount">—</strong><span>原始宽表字段</span></div>'+
+   '<div class="vault-stat"><small>数据字段</small><strong id="fieldCount">—</strong><span>原始宽表字段</span></div>'+
    '<div class="vault-stat"><small>可见字段</small><strong id="visibleCount">—</strong><span>管理员审核后开放</span></div>'+
    '<div class="vault-stat"><small>数据状态</small><strong id="dataState">—</strong><span>受控数据库</span></div>'+
   '</section>'+
   '<section class="vault-pane active" data-pane="overview">'+
-    '<div class="vault-block"><div class="vault-block-head"><div><h2>队列数据概况</h2><p>真实患者数据由数据库集中存储；每位成员按权限访问，无需在不同电脑重复上传</p></div></div>'+
-     '<div id="cohortChart" hidden><div class="vault-block-head"><div><h2>队列变量统计</h2><p>仅显示经过批准的字段，人数小于5的分组不单独显示</p></div><select id="chartField" class="vault-select"></select></div><div id="chartContent" class="vault-plot"></div></div>'+
+    '<div class="vault-block"><div class="vault-block-head"><div><h2>真实世界数据概况</h2><p>真实患者数据由数据库集中存储；每位成员按权限访问，无需在不同电脑重复上传</p></div></div>'+
+     '<div id="cohortChart" hidden><div class="vault-block-head"><div><h2>慢病变量统计</h2><p>仅显示经过批准的字段，人数小于5的分组不单独显示</p></div><select id="chartField" class="vault-select"></select></div><div id="chartContent" class="vault-plot"></div></div>'+
   '<div id="importSection">'+
       '<div class="vault-warning"><strong>首次导入：</strong>仅管理员可将本机原始 CSV 经加密连接写入私有数据库。浏览器不在本机永久保存文件，也不向 GitHub 传输记录。正式数据尚未入库时，不能展示真实记录。</div>'+
       '<label for="importFile" class="vault-primary">管理员选择 CSV，开始一次性导入</label><input id="importFile" type="file" accept=".csv,text/csv" hidden>'+
@@ -53,7 +53,7 @@ function base(){
       '<div id="fieldReview" class="cohort-field-list"></div></div>'+
   '</section>'+
   '<section class="vault-pane" data-pane="records">'+
-    '<div class="vault-block"><div class="vault-block-head"><div><h2>队列数据检索</h2><p>服务器端限制单页最多25条，查询仅返回经过管理员批准的字段</p></div></div>'+
+    '<div class="vault-block"><div class="vault-block-head"><div><h2>数据检索</h2><p>服务器端限制单页最多25条，查询仅返回经过管理员批准的字段</p></div></div>'+
       '<div id="searchBlock" hidden>'+
        '<div class="clinical-filters"><label>筛选字段<select id="filterField" class="vault-select"></select></label>'+
        '<label>运算<select id="filterOp" class="vault-select"><option value="eq">等于</option><option value="gte">大于或等于</option><option value="lte">小于或等于</option></select></label>'+
@@ -64,7 +64,7 @@ function base(){
       '</div><p id="searchUnavailable" class="clinical-muted">正式数据库及字段授权完成后开放检索。</p>'+
     '</div>'+
   '</section>'+
- '</div><footer class="vault-footer">天津心血管疾病+队列 · 私有科研数据库 · 严禁未经授权的患者数据导出</footer></main></div>';
+ '</div><footer class="vault-footer">天津慢病真实世界数据平台 · 私有科研数据库 · 严禁未经授权的患者数据导出</footer></main></div>';
  const logout=$("logoutBtn");if(logout){logout.hidden=false;logout.className="vault-outline";root.querySelector(".vault-actions").appendChild(logout);}
  root.querySelectorAll(".vault-nav").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.view)));
  $("importFile").addEventListener("change",e=>{if(e.target.files?.[0])startImport(e.target.files[0]);});
@@ -77,7 +77,7 @@ function base(){
  $("next").addEventListener("click",()=>{state.page+=1;search();});
 }
 function navigate(view){
- state.view=view;$("pageTitle").textContent=view==="overview"?"队列概览":"队列数据检索";
+ state.view=view;$("pageTitle").textContent=view==="overview"?"数据概览":"数据检索";
  document.querySelectorAll(".vault-nav").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
  document.querySelectorAll(".vault-pane").forEach(b=>b.classList.toggle("active",b.dataset.pane===view));
 }
