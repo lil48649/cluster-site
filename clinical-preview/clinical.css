@@ -25,23 +25,23 @@
  .clinical-filters .vault-primary,.clinical-filters .vault-outline{width:100%}
 }
 
-/* Tianjin cardiovascular cohort visual identity */
-:root{--tj-navy:#17334a;--tj-red:#be4450;--tj-teal:#268c91;--tj-soft:#f6f8fb}
+/* Tianjin chronic disease real-world data visual identity */
+:root{--tj-navy:#17334a;--tj-red:#4979c8;--tj-teal:#268c91;--tj-soft:#f6f8fb}
 .vault-shell{background:#f5f7fa}
 .vault-sidebar{background:linear-gradient(175deg,#142f45 0%,#153d4e 55%,#102938 100%)}
-.vault-logo{background:linear-gradient(140deg,#d45d67,#a93449);font-size:25px;box-shadow:0 4px 14px rgba(181,60,75,.23)}
+.vault-logo{background:linear-gradient(140deg,#377fc6,#3d60b5);font-size:25px;box-shadow:0 4px 14px rgba(58,113,194,.24)}
 .vault-brand strong{font-size:14px;line-height:1.5;max-width:170px}
-.vault-nav.active{background:linear-gradient(90deg,#ba4b58,#8e455d)}
+.vault-nav.active{background:linear-gradient(90deg,#3a77bd,#32649c)}
 .vault-nav:hover{background:#234957}
-.vault-hero{position:relative;overflow:hidden;background:linear-gradient(112deg,#173950 0%,#225464 65%,#286b73 100%);padding:39px 38px}
-.vault-hero:after{content:"";position:absolute;pointer-events:none;top:17px;right:-6px;width:360px;height:132px;opacity:.20;background-repeat:no-repeat;background-position:center;background-size:contain;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='380' height='132' viewBox='0 0 380 132'%3E%3Cpath d='M0 74 H62 L78 56 L96 92 L125 23 L148 114 L169 71 L201 71 L224 45 L247 87 L266 72 H380' fill='none' stroke='%23ffffff' stroke-width='3.6' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E")}
+.vault-hero{position:relative;overflow:hidden;background:linear-gradient(112deg,#183c65 0%,#245882 60%,#207f83 100%);padding:39px 38px}
+.vault-hero:after{content:"";position:absolute;pointer-events:none;top:17px;right:-6px;width:360px;height:132px;opacity:.20;background-repeat:no-repeat;background-position:center;background-size:contain;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22380%22%20height%3D%22132%22%20viewBox%3D%220%200%20380%20132%22%3E%3Cg%20stroke%3D%22%23ffffff%22%20stroke-opacity%3D%22.78%22%20stroke-width%3D%222%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M18%2089%20L91%2029%20L155%2082%20L235%2027%20L340%2069%20M91%2029%20L235%2027%20M155%2082%20L340%2069%20M18%2089%20L155%2082%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23ffffff%22%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2289%22%20r%3D%227%22%2F%3E%3Ccircle%20cx%3D%2291%22%20cy%3D%2229%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22155%22%20cy%3D%2282%22%20r%3D%229%22%2F%3E%3Ccircle%20cx%3D%22235%22%20cy%3D%2227%22%20r%3D%2210%22%2F%3E%3Ccircle%20cx%3D%22340%22%20cy%3D%2269%22%20r%3D%228%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E")}
 .vault-hero h1{font-weight:760;font-size:29px;letter-spacing:.15px}
 .vault-eyebrow{color:#b9e7df}
 .vault-hero-chip{position:relative;z-index:1;background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.34)}
 .vault-stat strong{color:#1f5262}
-#statMatched{color:#ad4857}
+#statMatched{color:#326bb0}
 .vault-block-head h2{color:#1e4c60}
-.vault-bar-track>div{background:linear-gradient(90deg,#c85564,#2b9296)}
+.vault-bar-track>div{background:linear-gradient(90deg,#4987d4,#2b9296)}
 .vault-primary{border-color:#237a85;background:#227e89}
 .vault-primary:hover{background:#17636b}
 .clinical-caution{border-color:#d9e6e7;background:#eff7f8;color:#486e75}
@@ -63,3 +63,9 @@
 .cohort-field-row input{accent-color:#1f7e87}
 @media(max-width:900px){.cohort-field-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:570px){.cohort-field-list{grid-template-columns:minmax(0,1fr)}}
+
+/* Brand-only visual and typography adaptations; functional layout unchanged. */
+.vault-brand strong{max-width:unset;overflow-wrap:anywhere}
+.login-top-brand strong{letter-spacing:.35px;line-height:1.4}
+.login-top-brand small{letter-spacing:1.1px}
+@media(max-width:780px){.login-top-brand strong{font-size:11px}.vault-brand strong{font-size:13px}}
