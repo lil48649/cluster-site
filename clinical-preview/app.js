@@ -39,7 +39,7 @@ function base(){
   '<div id="importSection">'+
       '<div class="vault-warning"><strong>首次导入：</strong>仅管理员可将本机原始 CSV 经加密连接写入私有数据库。浏览器不在本机永久保存文件，也不向 GitHub 传输记录。正式数据尚未入库时，不能展示真实记录。</div>'+
       '<label for="importFile" class="vault-primary">管理员选择 CSV，开始一次性导入</label><input id="importFile" type="file" accept=".csv,text/csv" hidden>'+
-      '<p class="clinical-muted" id="importHelp">请选取本次生成的50,312条随机抽样 CSV（约35.8 MB），不要选择旧的163,335条原始文件。若中断，可重新选择同一文件续传。</p>'+
+      '<p class="clinical-muted" id="importHelp">请选取本次生成的50,312条随机抽样 CSV（约36.0 MB），不要选择旧的163,335条原始文件。若中断，可重新选择同一文件续传。</p>'+
       '<div class="vault-progress" id="uploadProgress" hidden><div id="uploadBar"></div></div>'+
       '<p id="uploadText" class="clinical-muted" aria-live="polite"></p>'+
      '</div>'+
