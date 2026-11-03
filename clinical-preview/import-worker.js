@@ -31,10 +31,10 @@ async function run(file){
   finishCell();const cells=row;row=[];
   if(first){first=false;header=cells.map((s,i)=>i===0?s.replace(/^\uFEFF/,""):s);
    if(header.length!==313||new Set(header).size!==313)throw Error("CSV字段必须是313个不重复名称");
-   const init=await request("begin",{sha,headers:header,rows:50000});
+   const init=await request("begin",{sha,headers:header,rows:50312});
    if (!init.accepted) throw new Error("导入登记未获确认");
    resumeFrom=Number(init.resume_from);
-   if (!Number.isInteger(resumeFrom) || resumeFrom<1 || resumeFrom>50001)
+   if (!Number.isInteger(resumeFrom) || resumeFrom<1 || resumeFrom>50313)
      throw new Error("数据库续传游标无效，已停止上传");
    postMessage({type:"resuming",rows:resumeFrom-1,resume_from:resumeFrom,
      continuous:init.continuous!==false,already_complete:init.ready===true});
@@ -42,7 +42,7 @@ async function run(file){
   }
   if(cells.length===1&&cells[0]==="")return;
   if(cells.length!==313)throw Error("CSV第"+(numRows+1)+"行列数异常");
-  numRows++;if(numRows>50000)throw Error("CSV实际行数大于50000");
+  numRows++;if(numRows>50312)throw Error("CSV实际行数大于50312");
   // The file is parsed locally from the beginning for validation, but
   // previously confirmed rows are NOT re-encoded, queued, or uploaded.
   if(numRows<resumeFrom)return;
@@ -79,7 +79,7 @@ async function run(file){
  if(quote)throw Error("CSV中存在未闭合的引号");
  if(cell.length||row.length)await finishRow();
  await flush();
- if(numRows!==50000)throw Error("原始文件行数不符，实际为"+numRows+"，未完成正式导入");
+ if(numRows!==50312)throw Error("原始文件行数不符，实际为"+numRows+"，未完成正式导入");
  await request("finish",{sha});
  postMessage({type:"complete",rows:numRows});
 }
