@@ -169,7 +169,7 @@ async function startImport(file){
  $("importFile").value=""; // Re-selecting the same file must always trigger change.
  $("importHelp").textContent="正在计算SHA-256并分批传输。请保持此页面打开，不要关闭浏览器。";
  $("uploadProgress").hidden=false;$("uploadBar").style.width="0%";
- const w=new Worker("import-worker.js?v=tj-rwd-sample50000-1");state.worker=w;
+ const w=new Worker("import-worker.js?v=tj-rwd-sample50312-1");state.worker=w;
  w.onmessage=async event=>{
   const m=event.data||{};
   if(m.type==="resuming"){
