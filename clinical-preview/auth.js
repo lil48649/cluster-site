@@ -162,7 +162,7 @@
     $("totpSecret").textContent = "";
     $("totpQr").removeAttribute("src");
     const script = document.createElement("script");
-    script.src = "app.js?v=tj-rwd-brand-1";
+    script.src = "app.js?v=tj-rwd-fields50";
     script.onerror = function () {
       appLoaded = false;
       document.documentElement.classList.remove("authenticated");
