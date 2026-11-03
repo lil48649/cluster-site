@@ -174,7 +174,7 @@ async function startImport(file){
   const m=event.data||{};
   if(m.type==="resuming"){
    const existing=Number(m.rows)||0;
-   $("uploadBar").style.width=Math.min(99,100*existing/50000).toFixed(1)+"%";
+   $("uploadBar").style.width=Math.min(99,100*existing/50312).toFixed(1)+"%";
    $("uploadText").textContent=existing>0
      ?"已保存 "+fmt(existing)+" 条；从第 "+fmt(m.resume_from)+" 条开始补传。正在本机跳过已保存行，不重新上传。"
      :"数据库尚无记录，将从第一条开始导入。";
