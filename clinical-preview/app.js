@@ -46,7 +46,7 @@ function base(){
      '<div id="importNoAdmin" class="vault-warning" hidden>正式数据尚未导入。请由项目管理员登录执行一次性导入。</div>'+
      '<div id="readyText" class="vault-warning" hidden>正式数据已经导入。所有成员通过同一数据库检索，不需要再次上传CSV。</div>'+
     '</div>'+
-    '<div class="vault-block" id="permissionCard" hidden><div class="vault-block-head"><div><h2>研究字段授权</h2><p>仅管理员可以审核字段；默认不开放任何患者级字段，单次最多选择50项</p></div>'+
+    '<div class="vault-block" id="permissionCard" hidden><div class="vault-block-head"><div><h2>研究字段授权</h2><p>仅管理员可以审核字段；默认不开放任何患者级字段，单次最多选择65项</p></div>'+
       '<button id="saveFields" class="vault-primary" type="button">保存可见字段</button></div>'+
       '<p class="clinical-muted">请特别注意姓名、身份证号、联系电话、住院号以及可能重新识别患者的字段。未勾选字段不会进入普通成员的查询结果。</p>'+
       '<input id="fieldSearch" class="vault-input" type="search" placeholder="搜索本次导入的临床字段…">'+
@@ -124,7 +124,7 @@ async function saveApprovedFields(){
  if(!selected.every(x=>Number.isInteger(x)&&x>=1&&x<=313)){
    notice("字段编号异常，请刷新后重新选择。");return;
  }
- if(selected.length>50){notice("最多开放50个字段，请先减少勾选项。");return;}
+ if(selected.length>65){notice("最多开放65个字段，请先减少勾选项。");return;}
  if(!confirm("确定向所有授权项目组成员开放所选的 "+selected.length+
    " 个字段吗？请先确认不包含患者身份标识或不宜共享的敏感信息。"))return;
  const btn=$("saveFields");if(btn)btn.disabled=true;
