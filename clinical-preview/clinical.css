@@ -177,3 +177,32 @@
  .login-medical-art{max-height:125px}
  .login-form-wrap{padding:22px}
 }
+
+/* Keep the first portal's distinct, original clinical-data illustration. */
+.login-visual{
+  background:linear-gradient(135deg,#f5faff 0%,#e7f3ff 100%);
+  border-right:1px solid #e8f0f9;
+  overflow:hidden;
+  padding:35px 23px 25px;
+}
+.login-visual-glow{
+  width:320px;
+  height:320px;
+  opacity:.65;
+}
+.login-visual-footer{
+  position:relative;
+  z-index:2;
+  margin-top:31px;
+  font-size:10px;
+  color:#5c8ab0;
+  letter-spacing:1.1px;
+}
+@media(max-width:800px){
+  .login-visual{padding:16px;min-height:170px;overflow:hidden}
+  .login-visual-glow{width:220px;height:220px}
+  .login-visual-footer{margin-top:13px;font-size:8px}
+}
+@media(max-width:480px){
+  .login-visual{min-height:140px}
+}
