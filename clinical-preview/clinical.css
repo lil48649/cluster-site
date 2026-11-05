@@ -206,3 +206,28 @@
 @media(max-width:480px){
   .login-visual{min-height:140px}
 }
+
+/* Image recovered from the user's original login screenshot; no duplicate SVG artwork. */
+.login-screen .login-card .login-visual{
+  background:#fff;
+  border-right:0;
+  overflow:hidden;
+  padding:24px 16px;
+}
+.login-screen .clinical-original-art{
+  display:block;
+  width:100%;
+  max-width:410px;
+  height:auto;
+  max-height:355px;
+  object-fit:contain;
+  margin:auto;
+}
+@media(max-width:800px){
+  .login-screen .login-card .login-visual{min-height:165px;padding:12px 16px}
+  .login-screen .clinical-original-art{max-height:153px;width:auto;max-width:100%}
+}
+@media(max-width:480px){
+  .login-screen .login-card .login-visual{min-height:128px;padding:8px 14px}
+  .login-screen .clinical-original-art{max-height:125px}
+}
