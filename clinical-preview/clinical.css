@@ -109,3 +109,71 @@
  .login-visual{min-height:125px}
  .login-form-wrap{padding:22px}
 }
+
+/* Match risk-factor platform typography, hero, illustration and layout (2026-11-05). */
+.login-screen{position:relative;min-height:100svh;background:#1c90f7;padding:37px 39px 25px;overflow-x:hidden;overflow-y:auto;
+  font-family:-apple-system,BlinkMacSystemFont,"Microsoft Yahei","PingFang SC",Arial,sans-serif}
+.login-topline{width:100%;max-width:none;align-items:flex-start}
+.project-grant-name{font-size:clamp(15px,1.35vw,24px);font-weight:800;line-height:1.28;letter-spacing:2px;
+  color:#fff;text-shadow:0 2px 4px rgba(0,51,113,.15)}
+.login-heading{position:relative;z-index:2;text-align:center;margin:24px 0 35px}
+.login-heading h1{font-size:clamp(26px,2.55vw,43px);font-weight:800;letter-spacing:3px;
+  line-height:1.3;color:#fff;margin:0;text-shadow:0 3px 5px rgba(19,65,121,.35)}
+.login-card{width:min(900px,100%);min-height:440px;max-height:none;display:grid;grid-template-columns:1.08fr .92fr;
+  padding:0;border-radius:12px;box-shadow:0 14px 30px rgba(12,72,145,.13);background:#fff;
+  color:#1d354d;overflow:visible}
+.login-visual{position:relative;min-width:0;background:#fff;border:0;border-radius:12px 0 0 12px;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;padding:24px 15px}
+.login-medical-art{width:100%;max-width:400px;max-height:310px}
+.login-form-wrap{min-width:0;padding:40px clamp(25px,3.5vw,56px) 25px;display:flex;flex-direction:column;justify-content:center}
+.login-form-wrap h2{font-size:21px;font-weight:700;margin:0 0 12px;color:#122a45;text-align:left}
+.login-subtitle{font-size:13px;color:#8796a8;margin:0 0 15px;line-height:1.7}
+.login-form-wrap form>label,.login-form-wrap form>div>label{font-size:12px;font-weight:600;color:#435b72}
+.login-form-wrap form>label{margin:11px 0 6px}
+.login-field{margin-bottom:10px}
+.login-field input,.login-field select{width:100%;height:40px;border:1px solid #dce5f5;border-radius:5px;
+  background:#eef4ff;padding:9px 42px;font-size:13px;color:#243f66}
+.login-field input:focus,.login-field select:focus{border-color:#3b82f6;box-shadow:0 0 0 3px #3b82f61d}
+.login-submit{min-height:39px;height:40px;border:0;border-radius:4px;background:#2d62e8;box-shadow:none;
+  color:#fff;font-size:13px;font-weight:700}
+.login-submit:hover:not(:disabled){background:#1a53d5}
+.login-options{margin:3px 0 12px}
+.login-options .remember-label{font-size:11px;color:#667e96}
+.login-safety-note{font-size:10px;color:#9aa9bc;line-height:1.6;margin-top:13px}
+.login-bottom{width:min(900px,100%);margin-top:auto;padding-top:38px;justify-content:center;
+  text-align:center;font-size:12px;color:#e6f3ff}
+.login-cityline{height:235px;opacity:.15;z-index:-1}
+.login-cityline i{background:repeating-linear-gradient(0deg,transparent 0,transparent 15px,#ffffffad 16px,#ffffffad 18px),
+  linear-gradient(90deg,#bde4ff,#ffffff)}
+/* Cross-site consistent interior palette, without changing navigation or data functions. */
+.vault-shell{font-family:-apple-system,BlinkMacSystemFont,"Microsoft Yahei","PingFang SC",Arial,sans-serif;
+  background:#f4f7fd;color:#10264a}
+.vault-sidebar{background:linear-gradient(180deg,#184c91,#143960)}
+.vault-nav.active{background:#287fde}
+.vault-nav:hover{background:#25609b}
+.vault-hero{background:linear-gradient(108deg,#2865e7,#5c9cf3);border-radius:17px}
+.vault-hero h1{font-size:27px;font-weight:800;letter-spacing:.2px}
+.vault-block,.vault-stat{border-color:#e1eaf6;border-radius:17px}
+.vault-block-head h2{font-size:17px;color:#173766}
+.vault-primary{background:linear-gradient(90deg,#287fde,#3aa4ed);border-color:transparent;border-radius:9px;font-size:12px}
+.vault-primary:hover{background:#2476cc}
+.vault-stat strong{color:#213f66}
+.vault-bar-track>div{background:linear-gradient(90deg,#287fde,#3aa4ed)}
+@media(max-width:800px){
+ .login-screen{padding:23px 18px 21px}
+ .project-grant-name{font-size:clamp(12px,2.2vw,17px);letter-spacing:1px}
+ .login-heading{margin:31px 0 24px}
+ .login-heading h1{font-size:26px;letter-spacing:.7px}
+ .login-card{max-width:500px;grid-template-columns:1fr}
+ .login-visual{min-height:165px;border-radius:12px 12px 0 0;padding:12px}
+ .login-medical-art{max-height:153px}
+ .login-form-wrap{padding:24px 28px 29px}
+ .login-bottom{padding-top:20px}
+}
+@media(max-width:480px){
+ .project-grant-name{font-size:12px;letter-spacing:.2px}
+ .login-heading h1{font-size:24px}
+ .login-visual{min-height:128px}
+ .login-medical-art{max-height:125px}
+ .login-form-wrap{padding:22px}
+}
