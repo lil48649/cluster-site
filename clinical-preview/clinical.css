@@ -236,3 +236,32 @@
 .login-screen .login-card .login-visual{background:#fff!important;border:0!important;overflow:hidden;min-height:300px;display:flex;align-items:center;justify-content:center}
 .login-screen .login-card .clinical-original-art{display:block!important;width:min(100%,448px)!important;height:auto!important;max-height:366px;object-fit:contain;filter:contrast(1.035) saturate(1.02);position:relative;z-index:3}
 @media(max-width:800px){.login-screen .login-card .login-visual{min-height:165px}.login-screen .login-card .clinical-original-art{width:auto!important;max-width:100%;max-height:158px}}
+
+/* Roll back only the blurred raster illustration to the previous crisp vector. */
+.login-screen .login-card .login-visual{
+  background:#fff!important;
+  border:0!important;
+  overflow:hidden!important;
+  display:flex!important;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  min-height:300px;
+  padding:24px 16px!important;
+}
+.login-screen .login-card .login-medical-art{
+  display:block;
+  width:100%;
+  max-width:420px;
+  height:auto;
+  max-height:330px;
+  flex-shrink:0;
+}
+@media(max-width:800px){
+  .login-screen .login-card .login-visual{min-height:165px!important;padding:12px 16px!important}
+  .login-screen .login-card .login-medical-art{max-height:153px;max-width:100%}
+}
+@media(max-width:480px){
+  .login-screen .login-card .login-visual{min-height:128px!important;padding:8px 12px!important}
+  .login-screen .login-card .login-medical-art{max-height:125px}
+}
