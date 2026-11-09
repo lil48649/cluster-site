@@ -231,3 +231,8 @@
   .login-screen .login-card .login-visual{min-height:128px;padding:8px 14px}
   .login-screen .clinical-original-art{max-height:125px}
 }
+
+/* V2: explicitly show the reference 3D medical lab artwork rather than legacy SVG. */
+.login-screen .login-card .login-visual{background:#fff!important;border:0!important;overflow:hidden;min-height:300px;display:flex;align-items:center;justify-content:center}
+.login-screen .login-card .clinical-original-art{display:block!important;width:min(100%,448px)!important;height:auto!important;max-height:366px;object-fit:contain;filter:contrast(1.035) saturate(1.02);position:relative;z-index:3}
+@media(max-width:800px){.login-screen .login-card .login-visual{min-height:165px}.login-screen .login-card .clinical-original-art{width:auto!important;max-width:100%;max-height:158px}}
